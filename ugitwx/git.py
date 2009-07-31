@@ -5,6 +5,7 @@ import subprocess
 import re
 
 _git = None
+commit_pool = {}
 
 class GitError(RuntimeError): pass
 
@@ -117,6 +118,64 @@ class Repository(object):
                 repos.append(Repository(repo_path, name=opts['path'], parent=self))
 
         return repos
+
+    def get_log(self, args=[]):
+        log = self.run_cmd(['log', '-z', '--pretty=format:%H%n%h%n%P%n%T%n%an%n%ae%n%aD%n%s%n%b']+args)
+
+        commit_texts = log.split('\x00')
+        commit_texts.reverse()
+
+        commits = []
+        for text in commit_texts:
+            c = Commit(self)
+            c.parse_gitlog_output(text)
+            commit_pool[c.sha1] = c
+            commits.append(c)
+
+        commits.reverse()
+        return commits
+
+class Commit(object):
+    def __init__(self, repo):
+        self.repo = repo
+
+        self.sha1 = None
+        self.abbrev = None
+
+        self.parents = None
+        self.children = None
+        self.tree = None
+
+        self.author_name = None
+        self.author_email = None
+        self.author_date = None
+
+        self.short_msg = None
+        self.full_msg = None
+
+        self.remote_branches = None
+        self.branches = None
+        self.tags = None
+
+    def parse_gitlog_output(self, text):
+        lines = text.split('\n')
+
+        (self.sha1, self.abbrev, parents, self.tree,
+         self.author_name, self.author_email, self.author_date,
+         self.short_msg) = lines[0:8]
+
+        if parents:
+            parent_ids = parents.split(' ')
+            self.parents = [commit_pool[p] for p in parent_ids]
+            for parent in self.parents:
+                parent.children.append(self)
+        else:
+            self.parents = []
+
+        self.children = []
+
+        self.full_msg = '\n'.join(lines[8:])
+
 
 class ConfigFile(object):
     def __init__(self, filename):
