@@ -4,6 +4,22 @@ COLW  = 12 # Column width
 LINH  = 16 # Line height
 COMW  = 8  # Commit width
 
+EDGE_COLORS = [
+    (  0,   0,  96, 200),
+    (  0,  96,   0, 200),
+    ( 96,   0,   0, 200),
+
+    ( 64,  64,   0, 200),
+    ( 64,  0,   64, 200),
+    (  0,  64,  64, 200),
+
+    (128, 192,   0, 200),
+    (192, 128,   0, 200),
+    ( 64,   0, 128, 200),
+    (  0, 160,  96, 200),
+    (  0,  96, 160, 200)
+]
+
 class CommitList(wx.ScrolledWindow):
     def __init__(self, parent, id):
         wx.ScrolledWindow.__init__(self, parent, -1, style=wx.SUNKEN_BORDER)
@@ -22,6 +38,7 @@ class CommitList(wx.ScrolledWindow):
         rows = []  # items: (node, edges)
         nodes = {} # commit => GraphNode
         lanes = []
+        color = 0
 
         self.rows = rows
         self.columns = 0
@@ -41,10 +58,13 @@ class CommitList(wx.ScrolledWindow):
             for i in xrange(len(lanes)):
                 if lanes[i] and commit in lanes[i].commit.parents:
                     x = i
+                    node.color = lanes[i].color
                     break
 
             # 2.2. if there is no such commit, put to the first empty place
             if x == None:
+                node.color = color
+                color += 1
                 if None in lanes:
                     x = lanes.index(None)
                 else:
@@ -65,11 +85,14 @@ class CommitList(wx.ScrolledWindow):
                 if child.x == node.x and lanes[x] == child:
                     edge.style = EDGE_DIRECT
                     edge.x = node.x
+                    edge.color = child.color
                 elif len(child_commit.parents) == 1:
                     edge.style = EDGE_BRANCH
                     edge.x = child.x
+                    edge.color = child.color
                 else:
                     edge.style = EDGE_MERGE
+                    edge.color = node.color
 
                     # Determine column for merge edges
                     edge.x = max(node.x, child.x+1)
@@ -82,7 +105,7 @@ class CommitList(wx.ScrolledWindow):
                                 edge.x += 1
                                 success = False
                                 break
-                
+
                 # 3.2. Register edge in rows
                 for yy in xrange(node.y, child.y, -1):
                     n, edges = rows[yy]
@@ -117,19 +140,17 @@ class CommitList(wx.ScrolledWindow):
         # Setup pens and brushes
         commit_pen = wx.Pen(wx.Colour(0,0,0,255), width=2)
         commit_brush = wx.Brush(wx.Colour(255,255,255,255))
-        merge_pen = wx.Pen(wx.Colour(0,0,0,255), width=2)
-        merge_brush = wx.Brush(wx.Colour(0,0,0,255))
-        line_pen = wx.Pen(wx.Colour(64,64,150,255), width=2)
+        edge_pens = [ wx.Pen(wx.Colour(*c), width=2) for c in EDGE_COLORS ]
         text_pen = wx.Pen(wx.Colour(0,0,0,0))
 
         # Draw edges
-        dc.SetPen(line_pen)
         edges = set()
         for node,row_edges in self.rows[start_row:end_row+1]:
             edges.update(row_edges)
         for edge in edges:
             if not edge: continue
 
+            dc.SetPen(edge_pens[edge.color % len(EDGE_COLORS)])
             if edge.style == EDGE_DIRECT:
                 x1, y1 = self.CalcScrolledPosition( (edge.src.x+1)*COLW, (edge.src.y+1)*LINH )
                 x2, y2 = self.CalcScrolledPosition( (edge.dst.x+1)*COLW, (edge.dst.y+1)*LINH )
@@ -182,6 +203,7 @@ class GraphNode(object):
         self.commit = commit
         self.x = None
         self.y = None
+        self.color = None
 
         self.parent_edges = []
         self.child_edges  = []
@@ -204,6 +226,7 @@ class GraphEdge(object):
         self.dst = dst
 
         self.style = None
+        self.color = None
         self.x = None
         self.color = None
 
