@@ -187,7 +187,11 @@ class CommitList(wx.ScrolledWindow):
                 dc.DrawCircle(xx, yy, COMW/2)
 
             # Draw message
-            x = (self.columns+2) * COLW
+            if node.y < len(self.rows)-1:
+                text_column = max(len(edges), len(self.rows[node.y+1][1]))
+            else:
+                text_column = len(edges)
+            x = (text_column+1) * COLW
             y = (node.y+1) * LINH - 8
             xx, yy = self.CalcScrolledPosition(x, y)
             dc.DrawText(node.commit.short_msg, xx, yy)
