@@ -21,18 +21,23 @@ EDGE_COLORS = [
 ]
 
 class CommitList(wx.ScrolledWindow):
-    def __init__(self, parent, id):
+    def __init__(self, parent, id, allowMultiple=False):
         wx.ScrolledWindow.__init__(self, parent, -1, style=wx.SUNKEN_BORDER)
         self.SetBackgroundColour('WHITE')
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftClick)
+        self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClick)
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
+        self.selection = []
+        self.allowMultiple = allowMultiple
 
     def SetRepo(self, repo):
         self.repo = repo
         self.commits = self.repo.get_log(['--topo-order', '--all'])
         self.CreateLogGraph()
 
-        self.SetVirtualSize((600, (len(self.rows)+1) * LINH))
-        self.SetScrollRate(20, 20)
+        self.SetVirtualSize((-1, (len(self.rows)+1) * LINH))
+        self.SetScrollRate(LINH, LINH)
     
     def CreateLogGraph(self):
         rows = []  # items: (node, edges)
@@ -123,11 +128,6 @@ class CommitList(wx.ScrolledWindow):
             lanes[x] = node
 
     def OnPaint(self, evt):
-        # Determine which commits to draw
-        x, y, width, height = self.GetUpdateRegion().GetBox()
-        start_x, start_y = self.CalcUnscrolledPosition(x, y)
-        start_row, end_row = max(0, start_y/LINH-1), (start_y+height)/LINH+1
-
         # Setup drawing context
         pdc = wx.PaintDC(self)
         try:
@@ -137,11 +137,32 @@ class CommitList(wx.ScrolledWindow):
 
         dc.BeginDrawing()
         
+        # Get basic drawing context details
+        size = self.GetClientSize()
+        width, height = size.GetWidth(), size.GetHeight()
+        font = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        fontsize = font.GetPixelSize()
+
+        # Determine which commits to draw
+        x, y, width, height = self.GetUpdateRegion().GetBox()
+        start_x, start_y = self.CalcUnscrolledPosition(x, y)
+        start_row, end_row = max(0, start_y/LINH-1), (start_y+height)/LINH+1
+
         # Setup pens and brushes
         commit_pen = wx.Pen(wx.Colour(0,0,0,255), width=2)
         commit_brush = wx.Brush(wx.Colour(255,255,255,255))
         edge_pens = [ wx.Pen(wx.Colour(*c), width=2) for c in EDGE_COLORS ]
         text_pen = wx.Pen(wx.Colour(0,0,0,0))
+        selection_pen = wx.NullPen
+        selection_brush = wx.Brush(wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHT))
+
+        # Draw selection
+        dc.SetPen(selection_pen)
+        dc.SetBrush(selection_brush)
+        for row in self.selection:
+            if start_row <= row <= end_row:
+                x, y = self.CalcScrolledPosition(0, (row+1)*LINH)
+                dc.DrawRectangle(0, y-LINH/2, width, LINH)
 
         # Draw edges
         edges = set()
@@ -192,11 +213,153 @@ class CommitList(wx.ScrolledWindow):
             else:
                 text_column = len(edges)
             x = (text_column+1) * COLW
-            y = (node.y+1) * LINH - 8
+            y = (node.y+1) * LINH - LINH/2
             xx, yy = self.CalcScrolledPosition(x, y)
             dc.DrawText(node.commit.short_msg, xx, yy)
 
         dc.EndDrawing()
+
+    def OnLeftClick(self, e):
+        # Determine row number
+        x, y = self.CalcUnscrolledPosition(*(e.GetPosition()))
+        row = self.RowNumberByCoords(x, y)
+        if row == None:
+            return
+
+        # Handle different type of clicks
+        old_selection = list(self.selection)
+        if self.allowMultiple and e.ShiftDown() and len(old_selection) >= 1:
+            from_row = old_selection[0]
+            to_row = row
+            if to_row >= from_row:
+                self.selection = range(from_row, to_row+1)
+            else:
+                self.selection = range(to_row, from_row+1)
+                self.selection.reverse()
+        elif self.allowMultiple and (e.ControlDown() or e.CmdDown()):
+            if row not in self.selection:
+                self.selection.insert(0, row)
+        else:
+            self.selection = [row]
+
+        # Emit right click event
+        event = CommitListEvent(EVT_COMMITLIST_SELECT_type, self.GetId())
+        event.SetCurrentRow(row)
+        event.SetSelection(self.selection)
+        self.ProcessEvent(event)
+        self.OnSelectionChanged(row, self.selection)
+
+        # Redraw window
+        self.Refresh()
+
+    def OnRightClick(self, e):
+        # Determine row number
+        x, y = self.CalcUnscrolledPosition(*(e.GetPosition()))
+        row = self.RowNumberByCoords(x, y)
+        if row == None:
+            return
+
+        # Emit right click event
+        event = CommitListEvent(EVT_COMMITLIST_RIGHTCLICK_type, self.GetId())
+        event.SetCurrentRow(row)
+        event.SetSelection(self.selection)
+        self.ProcessEvent(event)
+        self.OnRightButtonClicked(row, self.selection)
+
+    def OnKeyPressed(self, e):
+        key = e.GetKeyCode()
+
+        # Handle only UP and DOWN keys
+        if key not in [wx.WXK_UP, wx.WXK_DOWN] or len(self.rows) == 0:
+            e.Skip()
+            return
+
+        e.StopPropagation()
+
+        # Get scrolling position
+        start_col, start_row = self.GetViewStart()
+        size = self.GetClientSize()
+        height = size.GetHeight() / LINH
+
+        if self.selection:
+            # Process up/down keys
+            current_row = self.selection[0]
+
+            if key == wx.WXK_UP:
+                next_row = max(current_row-1, 0)
+            if key == wx.WXK_DOWN:
+                next_row = min(current_row+1, len(self.rows)-1)
+
+            # Process modifiers
+            if e.ShiftDown() and self.allowMultiple:
+                if next_row in self.selection:
+                    self.selection.remove(current_row)
+                else:
+                    self.selection.insert(0, next_row)
+            else:
+                self.selection = [next_row]
+
+        else:
+            # Select topmost row of current view
+            next_row = start_row
+            if next_row < 0 or next_row > len(self.rows):
+                return
+
+            self.selection = [next_row]
+
+        # Scroll selection if necessary
+        if next_row < start_row:
+            self.Scroll(start_col, next_row-1)
+        elif next_row > start_row + height - 1:
+            self.Scroll(start_col, next_row-height+2)
+
+        # Emit selection event
+        event = CommitListEvent(EVT_COMMITLIST_SELECT_type, self.GetId())
+        event.SetCurrentRow(next_row)
+        event.SetSelection(self.selection)
+        self.ProcessEvent(event)
+        self.OnSelectionChanged(next_row, self.selection)
+
+        self.Refresh()
+
+    def RowNumberByCoords(self, x, y):
+        row = (y+LINH/2) / LINH - 1
+
+        if row < 0 or row >= len(self.rows):
+            return None
+        else:
+            return row
+
+    # Virtual event handlers
+    def OnSelectionChanged(self, row, selection):
+        pass
+
+    def OnRightButtonClicked(self, row, selection):
+        pass
+
+EVT_COMMITLIST_SELECT_type = wx.NewEventType()
+EVT_COMMITLIST_SELECT = wx.PyEventBinder(EVT_COMMITLIST_SELECT_type, 1)
+
+EVT_COMMITLIST_RIGHTCLICK_type = wx.NewEventType()
+EVT_COMMITLIST_RIGHTCLICK = wx.PyEventBinder(EVT_COMMITLIST_RIGHTCLICK_type, 1)
+
+class CommitListEvent(wx.PyCommandEvent):
+    def __init__(self, eventType, id):
+        wx.PyCommandEvent.__init__(self, eventType, id)
+        self.selection = None
+        self.currentRow = None
+
+    def GetCurrentRow(self):
+        return self.currentRow
+
+    def SetCurrentRow(self, currentRow):
+        self.currentRow = currentRow
+
+    def GetSelection(self):
+        return self.selection
+
+    def SetSelection(self, selection):
+        self.selection = selection
 
 NODE_NORMAL   = 0
 NODE_BRANCH   = 1
