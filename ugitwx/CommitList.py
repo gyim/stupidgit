@@ -28,10 +28,15 @@ class CommitList(wx.ScrolledWindow):
         self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftClick)
         self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClick)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
+        self.repo = None
         self.selection = []
         self.allowMultiple = allowMultiple
 
     def SetRepo(self, repo):
+        if self.repo != repo:
+            self.selection = []
+            self.Scroll(0, 0)
+
         self.repo = repo
         self.commits = self.repo.get_log(['--topo-order', '--all'])
         self.CreateLogGraph()
