@@ -145,21 +145,35 @@ class CommitList(wx.ScrolledWindow):
         # Get basic drawing context details
         size = self.GetClientSize()
         width, height = size.GetWidth(), size.GetHeight()
-        font = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
-        fontsize = font.GetPixelSize()
+        default_font = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        default_fontsize = default_font.GetPixelSize()
 
         # Determine which commits to draw
         x, y, width, height = self.GetUpdateRegion().GetBox()
         start_x, start_y = self.CalcUnscrolledPosition(x, y)
         start_row, end_row = max(0, start_y/LINH-1), (start_y+height)/LINH+1
 
-        # Setup pens and brushes
+        # Setup pens, brushes and fonts
         commit_pen = wx.Pen(wx.Colour(0,0,0,255), width=2)
         commit_brush = wx.Brush(wx.Colour(255,255,255,255))
+        commit_font = wx.Font(12, default_font.GetFamily(), wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+
         edge_pens = [ wx.Pen(wx.Colour(*c), width=2) for c in EDGE_COLORS ]
-        text_pen = wx.Pen(wx.Colour(0,0,0,0))
+        
         selection_pen = wx.NullPen
         selection_brush = wx.Brush(wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHT))
+
+        ref_pens = [
+            wx.Pen(wx.Colour(255,0,0,255), width=1), # REF_BRANCH
+            wx.Pen(wx.Colour(0,255,0,255), width=1), # REF_REMOTE
+            wx.Pen(wx.Colour(0,0,255,255), width=1)  # REF_TAG
+        ]
+        ref_brushes = [
+            wx.Brush(wx.Colour(255,128,128,255)), # REF_BRANCH
+            wx.Brush(wx.Colour(128,255,128,255)), # REF_REMOTE
+            wx.Brush(wx.Colour(128,128,255,255))  # REF_TAG
+        ]
+        ref_font = wx.Font(9, default_font.GetFamily(), wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
 
         # Draw selection
         dc.SetPen(selection_pen)
@@ -212,12 +226,39 @@ class CommitList(wx.ScrolledWindow):
                 xx, yy = self.CalcScrolledPosition(x, y)
                 dc.DrawCircle(xx, yy, COMW/2)
 
-            # Draw message
+            # Calculate column
             if node.y < len(self.rows)-1:
                 text_column = max(len(edges), len(self.rows[node.y+1][1]))
             else:
                 text_column = len(edges)
-            x = (text_column+1) * COLW
+
+            # Draw references
+            msg_offset = 0
+            refs = \
+                [(name,REF_BRANCH) for name,sha1 in self.repo.branches.iteritems() if sha1 == node.commit.sha1] + \
+                [(name,REF_REMOTE) for name,sha1 in self.repo.remote_branches.iteritems() if sha1 == node.commit.sha1] + \
+                [(name,REF_TAG) for name,sha1 in self.repo.tags.iteritems() if sha1 == node.commit.sha1]
+
+            for refname,reftype in refs:
+                dc.SetPen(ref_pens[reftype])
+                dc.SetBrush(ref_brushes[reftype])
+                dc.SetFont(ref_font)
+                
+                width,height = dc.GetTextExtent(refname)
+                x = (text_column+1) * COLW + msg_offset
+                y = (node.y+1) * LINH - LINH/2 + 1
+                xx, yy = self.CalcScrolledPosition(x, y)
+                dc.DrawRoundedRectangle(xx, yy, width + 4, LINH-2, 2)
+                msg_offset += width+8
+
+                dc.SetPen(commit_pen)
+                dc.SetBrush(commit_brush)
+                xx, yy = self.CalcScrolledPosition(x+2, y+1)
+                dc.DrawText(refname, xx, yy)
+
+            # Draw message
+            dc.SetFont(commit_font)
+            x = (text_column+1) * COLW + msg_offset
             y = (node.y+1) * LINH - LINH/2
             xx, yy = self.CalcScrolledPosition(x, y)
             dc.DrawText(node.commit.short_msg, xx, yy)
@@ -370,6 +411,10 @@ NODE_NORMAL   = 0
 NODE_BRANCH   = 1
 NODE_MERGE    = 2
 NODE_JUNCTION = 3
+
+REF_BRANCH    = 0
+REF_REMOTE    = 1
+REF_TAG       = 2
 class GraphNode(object):
     def __init__(self, commit):
         self.commit = commit

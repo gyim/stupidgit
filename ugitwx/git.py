@@ -100,6 +100,43 @@ class Repository(object):
         self.submodules = self.get_submodules()
         self.all_modules = [self] + self.submodules
 
+        self.load_refs()
+
+    def load_refs(self):
+        self.branches = {}
+        self.remote_branches = {}
+        self.tags = {}
+
+        # HEAD, current branch
+        self.head = self.run_cmd(['rev-parse', 'HEAD']).strip()
+        self.current_branch = None
+        try:
+            f = open(os.path.join(self.dir, '.git', 'HEAD'))
+            head = f.read().strip()
+            f.close()
+
+            if head.startswith('ref: refs/heads/'):
+                self.current_branch = head[16:]
+        except OSError:
+            pass
+
+        # References
+        for line in self.run_cmd(['show-ref']).split('\n'):
+            commit_id, _, refname = line.partition(' ')
+            if refname.startswith('refs/heads/'):
+                branchname = refname[11:]
+                self.branches[branchname] = commit_id
+            elif refname.startswith('refs/remotes/'):
+                branchname = refname[13:]
+                self.remote_branches[branchname] = commit_id
+            elif refname.startswith('refs/tags/'):
+                # Load the referenced commit for tags
+                tagname = refname[10:]
+                try:
+                    self.tags[tagname] = self.run_cmd(['rev-parse', '%s^{commit}' % refname], raise_error=True).strip()
+                except GitError:
+                    pass
+
     def run_cmd(self, args, **opts):
         return run_cmd(self.dir, args, **opts)
 

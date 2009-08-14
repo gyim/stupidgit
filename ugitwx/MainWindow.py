@@ -123,5 +123,6 @@ class MainWindow(wx.Frame):
             self.SetRepo(module[0])
 
     def OnRefresh(self, e):
+        self.currentRepo.load_refs()
         self.SetRepo(self.currentRepo)
 
