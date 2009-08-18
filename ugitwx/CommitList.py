@@ -1,4 +1,5 @@
 import wx
+import git
 
 COLW  = 12 # Column width
 LINH  = 16 # Line height
@@ -52,6 +53,7 @@ class CommitList(wx.ScrolledWindow):
 
         self.rows = rows
         self.columns = 0
+        self.nodes = nodes
         
         for y in xrange(len(self.commits)):
             # 1. Create node
@@ -132,6 +134,30 @@ class CommitList(wx.ScrolledWindow):
 
             lanes[x] = node
 
+        # References
+        if self.repo.current_branch:
+            self._add_reference(self.repo.head, self.repo.current_branch, REF_HEADBRANCH)
+        else:
+            self._add_reference(self.repo.head, 'DETACHED HEAD', REF_DETACHEDHEAD)
+
+        for branch,commit_id in self.repo.branches.iteritems():
+            if branch != self.repo.current_branch:
+                self._add_reference(commit_id, branch, REF_BRANCH)
+        for branch,commit_id in self.repo.remote_branches.iteritems():
+            self._add_reference(commit_id, branch, REF_REMOTE)
+        for tag,commit_id in self.repo.tags.iteritems():
+            self._add_reference(commit_id, tag, REF_TAG)
+
+    def _add_reference(self, commit_id, refname, reftype):
+        if commit_id not in git.commit_pool:
+            return
+
+        commit = git.commit_pool[commit_id]
+        if commit not in self.nodes:
+            return
+
+        self.nodes[commit].references.append((refname, reftype))
+
     def OnPaint(self, evt):
         # Setup drawing context
         pdc = wx.PaintDC(self)
@@ -164,14 +190,18 @@ class CommitList(wx.ScrolledWindow):
         selection_brush = wx.Brush(wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHT))
 
         ref_pens = [
-            wx.Pen(wx.Colour(255,0,0,255), width=1), # REF_BRANCH
-            wx.Pen(wx.Colour(0,255,0,255), width=1), # REF_REMOTE
-            wx.Pen(wx.Colour(0,0,255,255), width=1)  # REF_TAG
+            wx.Pen(wx.Colour(128,128,192,255), width=1),   # REF_BRANCH
+            wx.Pen(wx.Colour(0,255,0,255), width=1),       # REF_REMOTE
+            wx.Pen(wx.Colour(128,128,0,255), width=1),     # REF_TAG
+            wx.Pen(wx.Colour(255,128,128,255), width=1),   # REF_HEADBRANCH
+            wx.Pen(wx.Colour(255,0,0,255), width=1)        # REF_DETACHEDHEAD
         ]
         ref_brushes = [
-            wx.Brush(wx.Colour(255,128,128,255)), # REF_BRANCH
+            wx.Brush(wx.Colour(160,160,255,255)), # REF_BRANCH
             wx.Brush(wx.Colour(128,255,128,255)), # REF_REMOTE
-            wx.Brush(wx.Colour(128,128,255,255))  # REF_TAG
+            wx.Brush(wx.Colour(255,255,128,255)), # REF_TAG
+            wx.Brush(wx.Colour(255,160,160,255)), # REF_HEADBRANCH
+            wx.Brush(wx.Colour(255,128,128,255))  # REF_DETACHEDHEAD
         ]
         ref_font = wx.Font(9, default_font.GetFamily(), wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
 
@@ -183,6 +213,10 @@ class CommitList(wx.ScrolledWindow):
                 x, y = self.CalcScrolledPosition(0, (row+1)*LINH)
                 dc.DrawRectangle(0, y-LINH/2, width, LINH)
 
+        # Offsets
+        offx = COLW
+        offy = LINH
+
         # Draw edges
         edges = set()
         for node,row_edges in self.rows[start_row:end_row+1]:
@@ -192,20 +226,20 @@ class CommitList(wx.ScrolledWindow):
 
             dc.SetPen(edge_pens[edge.color % len(EDGE_COLORS)])
             if edge.style == EDGE_DIRECT:
-                x1, y1 = self.CalcScrolledPosition( (edge.src.x+1)*COLW, (edge.src.y+1)*LINH )
-                x2, y2 = self.CalcScrolledPosition( (edge.dst.x+1)*COLW, (edge.dst.y+1)*LINH )
+                x1, y1 = self.CalcScrolledPosition( edge.src.x*COLW+offx, edge.src.y*LINH+offy )
+                x2, y2 = self.CalcScrolledPosition( edge.dst.x*COLW+offx, edge.dst.y*LINH+offy )
                 dc.DrawLine(x1, y1, x2, y2)
             elif edge.style == EDGE_BRANCH:
-                x1, y1 = self.CalcScrolledPosition( (edge.src.x+1)*COLW, (edge.src.y+1)*LINH )
-                x2, y2 = self.CalcScrolledPosition( (edge.dst.x+1)*COLW, (edge.src.y+1)*LINH-7 )
-                x3, y3 = self.CalcScrolledPosition( (edge.dst.x+1)*COLW, (edge.dst.y+1)*LINH )
+                x1, y1 = self.CalcScrolledPosition( edge.src.x*COLW+offx, edge.src.y*LINH+offy )
+                x2, y2 = self.CalcScrolledPosition( edge.dst.x*COLW+offx, edge.src.y*LINH+offy-7 )
+                x3, y3 = self.CalcScrolledPosition( edge.dst.x*COLW+offx, edge.dst.y*LINH+offy )
                 dc.DrawLine(x1, y1, x2, y2)
                 dc.DrawLine(x2, y2, x3, y3)
             elif edge.style == EDGE_MERGE:
-                x1, y1 = self.CalcScrolledPosition( (edge.src.x+1)*COLW, (edge.src.y+1)*LINH )
-                x2, y2 = self.CalcScrolledPosition( (edge.x+1)*COLW, (edge.src.y+1)*LINH-7 )
-                x3, y3 = self.CalcScrolledPosition( (edge.x+1)*COLW, (edge.dst.y+1)*LINH+7 )
-                x4, y4 = self.CalcScrolledPosition( (edge.dst.x+1)*COLW, (edge.dst.y+1)*LINH )
+                x1, y1 = self.CalcScrolledPosition( edge.src.x*COLW+offx, edge.src.y*LINH+offy )
+                x2, y2 = self.CalcScrolledPosition( edge.x*COLW+offx, edge.src.y*LINH+offy-7 )
+                x3, y3 = self.CalcScrolledPosition( edge.x*COLW+offx, edge.dst.y*LINH+offy+7 )
+                x4, y4 = self.CalcScrolledPosition( edge.dst.x*COLW+offx, edge.dst.y*LINH+offy )
                 dc.DrawLine(x1, y1, x2, y2)
                 dc.DrawLine(x2, y2, x3, y3)
                 dc.DrawLine(x3, y3, x4, y4)
@@ -216,13 +250,13 @@ class CommitList(wx.ScrolledWindow):
         for node,edges in self.rows[start_row:end_row+1]:
             # Draw commit circle/rectangle
             if node.style == NODE_MERGE:
-                x = (node.x+1) * COLW - COMW/2
-                y = (node.y+1) * LINH - COMW/2   
+                x = node.x*COLW + offx - COMW/2
+                y = node.y*LINH + offy - COMW/2   
                 xx, yy = self.CalcScrolledPosition(x, y)
                 dc.DrawRectangle(xx, yy, COMW, COMW)
             else:
-                x = (node.x+1) * COLW
-                y = (node.y+1) * LINH
+                x = node.x*COLW + offx
+                y = node.y*LINH + offy
                 xx, yy = self.CalcScrolledPosition(x, y)
                 dc.DrawCircle(xx, yy, COMW/2)
 
@@ -234,22 +268,34 @@ class CommitList(wx.ScrolledWindow):
 
             # Draw references
             msg_offset = 0
-            refs = \
-                [(name,REF_BRANCH) for name,sha1 in self.repo.branches.iteritems() if sha1 == node.commit.sha1] + \
-                [(name,REF_REMOTE) for name,sha1 in self.repo.remote_branches.iteritems() if sha1 == node.commit.sha1] + \
-                [(name,REF_TAG) for name,sha1 in self.repo.tags.iteritems() if sha1 == node.commit.sha1]
 
-            for refname,reftype in refs:
+            for refname,reftype in node.references:
                 dc.SetPen(ref_pens[reftype])
                 dc.SetBrush(ref_brushes[reftype])
                 dc.SetFont(ref_font)
-                
+
+                x = text_column*COLW + offx + msg_offset
+                y = node.y*LINH + offy - LINH/2 + 1
                 width,height = dc.GetTextExtent(refname)
-                x = (text_column+1) * COLW + msg_offset
-                y = (node.y+1) * LINH - LINH/2 + 1
-                xx, yy = self.CalcScrolledPosition(x, y)
-                dc.DrawRoundedRectangle(xx, yy, width + 4, LINH-2, 2)
-                msg_offset += width+8
+                
+                if reftype in [REF_HEADBRANCH, REF_DETACHEDHEAD]:
+                    points = [
+                        (x, y+LINH/2-1),
+                        (x+6, y),
+                        (x+10 + width, y),
+                        (x+10 + width, y+LINH-3),
+                        (x+6, y+LINH-3)
+                    ]
+                    x += 6
+                    points = [ self.CalcScrolledPosition(*p) for p in points ]
+                    points = [ wx.Point(*p) for p in points ]
+
+                    dc.DrawPolygon(points)
+                    msg_offset += width+14
+                else:
+                    xx, yy = self.CalcScrolledPosition(x, y)
+                    dc.DrawRoundedRectangle(xx, yy, width + 4, LINH-2, 2)
+                    msg_offset += width+8
 
                 dc.SetPen(commit_pen)
                 dc.SetBrush(commit_brush)
@@ -258,8 +304,8 @@ class CommitList(wx.ScrolledWindow):
 
             # Draw message
             dc.SetFont(commit_font)
-            x = (text_column+1) * COLW + msg_offset
-            y = (node.y+1) * LINH - LINH/2
+            x = text_column*COLW + offx + msg_offset
+            y = node.y*LINH + offy - LINH/2
             xx, yy = self.CalcScrolledPosition(x, y)
             dc.DrawText(node.commit.short_msg, xx, yy)
 
@@ -412,9 +458,11 @@ NODE_BRANCH   = 1
 NODE_MERGE    = 2
 NODE_JUNCTION = 3
 
-REF_BRANCH    = 0
-REF_REMOTE    = 1
-REF_TAG       = 2
+REF_BRANCH       = 0
+REF_REMOTE       = 1
+REF_TAG          = 2
+REF_HEADBRANCH   = 3
+REF_DETACHEDHEAD = 4
 class GraphNode(object):
     def __init__(self, commit):
         self.commit = commit
@@ -424,6 +472,7 @@ class GraphNode(object):
 
         self.parent_edges = []
         self.child_edges  = []
+        self.references   = []
 
         if len(commit.parents) > 1 and len(commit.children) > 1:
             self.style = NODE_JUNCTION
