@@ -16,6 +16,9 @@ class MainWindow(wx.Frame):
         
         self.CreateMenu()
 
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.sizer)
+
         if repo:
             self.emptyText = None
             self.CreateRepoControls()
@@ -64,12 +67,9 @@ class MainWindow(wx.Frame):
         if self.emptyText:
             self.emptyText.Destroy()
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(sizer)
-
         # Top panel
         self.topPanel = wx.Panel(self, -1)
-        sizer.Add(self.topPanel, 0, wx.EXPAND)
+        self.sizer.Add(self.topPanel, 0, wx.EXPAND)
         topSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.topPanel.SetSizer(topSizer)
 
@@ -91,7 +91,7 @@ class MainWindow(wx.Frame):
 
         # Notebook
         self.pageChooser = wx.Notebook(self, -1)
-        sizer.Add(self.pageChooser, 1, wx.EXPAND)
+        self.sizer.Add(self.pageChooser, 1, wx.EXPAND)
 
         # Overview page
         self.overviewTab = OverviewTab(self, self.pageChooser, -1)
@@ -104,12 +104,11 @@ class MainWindow(wx.Frame):
         self.pageChooser.ChangeSelection(1)
 
         self.SetRepo(self.mainRepo)
+        self.sizer.Layout()
 
     def CreateEmptyText(self):
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(sizer)
         self.emptyText = wx.StaticText(self, -1, 'Welcome to ugitwx!\n\nYou can create or open a repository in the File menu.')
-        sizer.Add(self.emptyText, 1, wx.EXPAND)
+        self.sizer.Add(self.emptyText, 1, wx.EXPAND)
 
     def SetRepo(self, repo):
         self.currentRepo = repo
