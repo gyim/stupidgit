@@ -31,6 +31,10 @@ def git_binary():
     raise GitError, "git executable not found"
 
 def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False):
+    # Check args
+    if type(args) in [str, unicode]:
+        args = [args]
+
     # Check directory
     if not os.path.isdir(dir):
         raise GitError, 'Directory not exists: ' + dir
@@ -92,7 +96,7 @@ class Repository(object):
         self.url = self.config.get_option('remote', 'origin', 'url')
 
         # Run a git status to see whether this is really a git repository
-        retcode,output = self.run_cmd('status', with_retcode=True)
+        retcode,output = self.run_cmd(['status'], with_retcode=True)
         if retcode not in [0,1]:
             raise GitError, "Directory is not a git repository"
 
