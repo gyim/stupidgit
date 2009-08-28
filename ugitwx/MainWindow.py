@@ -112,6 +112,7 @@ class MainWindow(wx.Frame):
 
     def SetRepo(self, repo):
         self.currentRepo = repo
+        self.currentRepo.load_refs()
         self.overviewTab.SetRepo(repo)
         self.historyTab.SetRepo(repo)
 

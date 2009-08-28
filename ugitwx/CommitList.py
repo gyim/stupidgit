@@ -44,6 +44,7 @@ class CommitList(wx.ScrolledWindow):
 
         self.SetVirtualSize((-1, (len(self.rows)+1) * LINH))
         self.SetScrollRate(LINH, LINH)
+        self.Refresh()
     
     def CreateLogGraph(self):
         rows = []  # items: (node, edges)
