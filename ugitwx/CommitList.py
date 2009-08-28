@@ -422,6 +422,9 @@ class CommitList(wx.ScrolledWindow):
         else:
             return row
 
+    def CommitByRow(self, row):
+        return self.rows[row][0].commit
+
     # Virtual event handlers
     def OnSelectionChanged(self, row, selection):
         pass
