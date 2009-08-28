@@ -22,12 +22,17 @@ def git_binary():
 
     if os.name == 'posix':
         searchpaths.append('/opt/local/bin') # MacPorts
+    elif sys.platform == 'win32':
+        searchpaths.append(r'C:\Program Files\Git\bin')
+    elif sys.platform == 'cygwin':
+        searchpaths.append('/c/Program Files/Git/bin')
 
     for dir in searchpaths:
         _git = os.path.join(dir, binary_name)
         if os.path.isfile(_git) and os.access(_git, os.X_OK):
             return _git
 
+    _git = None
     raise GitError, "git executable not found"
 
 def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False):

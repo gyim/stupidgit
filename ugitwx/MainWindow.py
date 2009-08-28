@@ -79,7 +79,9 @@ class MainWindow(wx.Frame):
         # Module chooser
         module_choices = [s.name for s in self.mainRepo.all_modules]
         self.moduleChooser = wx.Choice(self.topPanel, -1, choices=module_choices)
-        topSizer.Add(self.moduleChooser, 1, wx.ALIGN_CENTRE_VERTICAL | wx.TOP, 4)
+        topPadding = 4 if sys.platform == 'darwin' else 0
+        topSizer.Add(self.moduleChooser, 1, wx.ALIGN_CENTRE_VERTICAL | wx.TOP, topPadding)
+        self.moduleChooser.Select(0)
         self.Bind(wx.EVT_CHOICE, self.OnModuleChosen, self.moduleChooser)
 
         self.manageBtn = wx.Button(self.topPanel, -1, 'Manage modules')

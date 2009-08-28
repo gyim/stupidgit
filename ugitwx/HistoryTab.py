@@ -17,7 +17,8 @@ class HistoryTab(wx.Panel):
 
         self.diffViewer = DiffViewer(self.splitter, -1)
 
-        self.splitter.SplitHorizontally(self.commitList, self.diffViewer, 0)
+        self.splitter.SetMinimumPaneSize(20)
+        self.splitter.SplitHorizontally(self.commitList, self.diffViewer, 200)
 
     def SetRepo(self, repo):
         self.repo = repo
