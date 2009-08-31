@@ -1,6 +1,7 @@
 from git import *
 from OverviewTab import OverviewTab
 from HistoryTab import HistoryTab
+from IndexTab import IndexTab
 import wx
 
 ID_NEWWINDOW = 101
@@ -103,6 +104,10 @@ class MainWindow(wx.Frame):
         self.historyTab = HistoryTab(self, self.pageChooser, -1)
         self.pageChooser.AddPage(self.historyTab, "History")
 
+        # Index tab
+        self.indexTab = IndexTab(self, self.pageChooser, -1)
+        self.pageChooser.AddPage(self.indexTab, "Index")
+
         self.pageChooser.ChangeSelection(1)
 
         self.SetRepo(self.mainRepo)
@@ -117,6 +122,7 @@ class MainWindow(wx.Frame):
         self.currentRepo.load_refs()
         self.overviewTab.SetRepo(repo)
         self.historyTab.SetRepo(repo)
+        self.indexTab.SetRepo(repo)
 
     def OnModuleChosen(self, e):
         module_name = e.GetString()
