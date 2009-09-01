@@ -88,19 +88,32 @@ class IndexTab(wx.Panel):
         self.diffViewer = DiffViewer(self, -1)
         self.sizer.Add(self.diffViewer, 2, wx.EXPAND)
 
+        # Commit / discard buttons
+        self.bottomButtons = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.bottomButtons, 0, wx.TOP | wx.BOTTOM, 5)
+
+        self.commitButton = wx.Button(self, -1, "Commit staged changes")
+        self.resetButton = wx.Button(self, -1, "Discard all changes")
+
+        self.Bind(wx.EVT_BUTTON, self.OnCommit, self.commitButton)
+        self.Bind(wx.EVT_BUTTON, self.OnReset, self.resetButton)
+
+        self.bottomButtons.Add(self.commitButton, 0, wx.LEFT, 5)
+        self.bottomButtons.Add(self.resetButton, 0, wx.LEFT, 5)
+
     def OnStage(self, e):
         for row in self.unstagedList.GetSelections():
             filename = self.unstagedChanges[row][0]
             self.repo.run_cmd(['add', filename])
 
-        self.SetRepo(self.repo)
+        self.Refresh()
 
     def OnUnstage(self, e):
         for row in self.stagedList.GetSelections():
             filename = self.stagedChanges[row][0]
             self.repo.run_cmd(['reset', 'HEAD', filename])
 
-        self.SetRepo(self.repo)
+        self.Refresh()
 
     def OnDiscard(self, e):
         # Get selection
@@ -124,7 +137,7 @@ class IndexTab(wx.Panel):
                 else:
                     self.repo.run_cmd(['checkout', filename])
 
-        self.SetRepo(self.repo)
+        self.Refresh()
 
     def OnUnstagedListSelect(self, e):
         # Clear selection in stagedList
@@ -184,6 +197,22 @@ class IndexTab(wx.Panel):
 
         self.diffViewer.SetDiffText(diff_text)
 
+    def OnCommit(self, e):
+        pass
+
+    def OnReset(self, e):
+        msg = wx.MessageDialog(
+            self.mainWindow,
+            "This operation will discard ALL (both staged and unstaged) changes. Do you really want to continue?",
+            "Warning",
+            wx.ICON_EXCLAMATION | wx.YES_NO | wx.YES_DEFAULT
+        )
+        if msg.ShowModal() == wx.ID_YES:
+            self.repo.run_cmd(['reset', '--hard'])
+            self.repo.run_cmd(['clean', '-f'])
+
+            self.Refresh()
+
     def SetRepo(self, repo):
         self.repo = repo
 
@@ -201,6 +230,9 @@ class IndexTab(wx.Panel):
 
         self.stagedList.Clear()
         self.stagedList.InsertItems( ['%s (%s)' % (c[0], MOD_DESCS[c[1]]) for c in self.stagedChanges], 0 )
+
+    def Refresh(self):
+        self.SetRepo(self.repo)
 
     def _parse_diff_output(self, cmd):
         output = self.repo.run_cmd(cmd)
