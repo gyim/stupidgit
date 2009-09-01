@@ -3,7 +3,7 @@
 import wx
 import wx.html
 import os
-import mimetypes
+import sys
 from DiffViewer import DiffViewer
 
 FILE_ADDED       = 'A'
@@ -30,6 +30,15 @@ MOD_DESCS = {
     FILE_UNKNOWN     : 'UNKNOWN'
 }
 
+if sys.platform in ['win32', 'cygwin']:
+    LABEL_STAGE = u"Stage >"
+    LABEL_UNSTAGE = u"< Unstage"
+    LABEL_DISCARD = u"× Discard"
+else:
+    LABEL_STAGE = u"Stage ⇒"
+    LABEL_UNSTAGE = u"⇐ Unstage"
+    LABEL_DISCARD = u"× Discard"
+
 class IndexTab(wx.Panel):
     def __init__(self, mainWindow, parent, id):
         wx.Panel.__init__(self, parent, id)
@@ -52,19 +61,19 @@ class IndexTab(wx.Panel):
 
         # Stage/unstage/discard buttons
         self.actionButtons = wx.BoxSizer(wx.VERTICAL)
-        self.listRow.Add(self.actionButtons)
+        self.listRow.Add(self.actionButtons, 0, wx.BOTTOM, 5)
 
-        self.stageButton = wx.Button(self, -1, u"Stage ⇒")
-        self.unstageButton = wx.Button(self, -1, u"⇐ Unstage")
-        self.discardButton = wx.Button(self, -1, u"× Discard")
+        self.stageButton = wx.Button(self, -1, LABEL_STAGE)
+        self.unstageButton = wx.Button(self, -1, LABEL_UNSTAGE)
+        self.discardButton = wx.Button(self, -1, LABEL_DISCARD)
 
         self.Bind(wx.EVT_BUTTON, self.OnStage, self.stageButton)
         self.Bind(wx.EVT_BUTTON, self.OnUnstage, self.unstageButton)
         self.Bind(wx.EVT_BUTTON, self.OnDiscard, self.discardButton)
 
-        self.actionButtons.Add(self.stageButton, 1, wx.EXPAND | wx.TOP, 20)
-        self.actionButtons.Add(self.unstageButton, 1, wx.EXPAND | wx.TOP, 5)
-        self.actionButtons.Add(self.discardButton, 1, wx.EXPAND | wx.TOP, 5)
+        self.actionButtons.Add(self.stageButton, 0, wx.EXPAND | wx.TOP, 20)
+        self.actionButtons.Add(self.unstageButton, 0, wx.EXPAND | wx.TOP, 5)
+        self.actionButtons.Add(self.discardButton, 0, wx.EXPAND | wx.TOP, 20)
 
         # Staged changes
         self.stagedBox = wx.StaticBox(self, -1, "Staged changes")
