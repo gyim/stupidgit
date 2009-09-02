@@ -1,0 +1,41 @@
+Installation
+============
+
+Simply clone the StupidGit repository to any place you want.
+
+To run StupidGit, you will need the following packages:
+- Python >= 2.5
+  - Windows: http://www.python.org/download/
+  - Ubuntu Linux: installed by default
+  - OS X: installed by default
+- wxPython >= 2.8
+  - Windows: http://www.wxpython.org/download.php
+  - Ubuntu Linux: apt-get install python-wxgtk2.8
+  - OS X: installed by default
+- Git >= 1.6
+  ... if this is not installed yet, you probably don't need this program ;)
+  StupidGit is tested with the standard git-core package on Ubuntu,
+  the MacPorts git-core package on OS X and msysgit on Windows.
+
+StupidGit will search git binary on the following locations:
+- PATH
+- on Unix platforms: /opt/local/bin (for MacPorts)
+- on Windows: C:\Program Files\Git\bin (default path for msysgit)
+
+Running StupidGit
+=================
+
+On unix systems it is useful to create a symlink to
+<StupidGit_dir>/bin/stupidgit from a directory which is in the PATH. If you
+invoke stupidgit from a directory which is inside a git repository, it will
+open that repo by default (just as gitk does).
+
+On Windows, double-click on <StupidGit_dir>/bin/run.py. This will open the
+StupidGit repository by default, but you can open another repository easily :)
+
+Development
+===========
+
+You are welcome to contribute to this project! See the wiki on GitHub for
+details.
+
