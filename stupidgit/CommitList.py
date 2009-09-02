@@ -1,5 +1,6 @@
 import wx
 import git
+import platformspec
 
 COLW  = 12 # Column width
 LINH  = 16 # Line height
@@ -160,6 +161,9 @@ class CommitList(wx.ScrolledWindow):
         self.nodes[commit].references.append((refname, reftype))
 
     def OnPaint(self, evt):
+        if not self.repo:
+            return
+
         # Setup drawing context
         pdc = wx.PaintDC(self)
         try:
@@ -172,8 +176,6 @@ class CommitList(wx.ScrolledWindow):
         # Get basic drawing context details
         size = self.GetClientSize()
         width, height = size.GetWidth(), size.GetHeight()
-        default_font = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
-        default_fontsize = default_font.GetPixelSize()
 
         # Determine which commits to draw
         x, y, width, height = self.GetUpdateRegion().GetBox()
@@ -183,7 +185,7 @@ class CommitList(wx.ScrolledWindow):
         # Setup pens, brushes and fonts
         commit_pen = wx.Pen(wx.Colour(0,0,0,255), width=2)
         commit_brush = wx.Brush(wx.Colour(255,255,255,255))
-        commit_font = wx.Font(12, default_font.GetFamily(), wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        commit_font = platformspec.Font(12)
 
         edge_pens = [ wx.Pen(wx.Colour(*c), width=2) for c in EDGE_COLORS ]
         
@@ -204,7 +206,7 @@ class CommitList(wx.ScrolledWindow):
             wx.Brush(wx.Colour(255,160,160,255)), # REF_HEADBRANCH
             wx.Brush(wx.Colour(255,128,128,255))  # REF_DETACHEDHEAD
         ]
-        ref_font = wx.Font(9, default_font.GetFamily(), wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        ref_font = platformspec.Font(9)
 
         # Draw selection
         dc.SetPen(selection_pen)

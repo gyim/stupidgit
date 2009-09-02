@@ -1,5 +1,6 @@
 import wx
 import wx.stc
+import platformspec
 
 STYLE_NORMAL  = 1
 STYLE_COMMIT  = 2
@@ -41,7 +42,7 @@ class DiffViewer(wx.Panel):
         # Create text styles
         for style in xrange(1, len(STYLE_COLORS)):
             fg, bg, weight = STYLE_COLORS[style]
-            font = wx.Font(10, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, weight)
+            font = platformspec.Font(10, wx.FONTFAMILY_TELETYPE)
             
             self.textCtrl.StyleSetFont(style, font)
             self.textCtrl.StyleSetForeground(style, fg)
