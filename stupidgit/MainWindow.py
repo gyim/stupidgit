@@ -10,11 +10,9 @@ ID_OPEN      = 103
 ID_EXIT      = 104
 
 class MainWindow(wx.Frame):
-    def __init__(self, parent, id, title, repo):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, title, size=(550,600))
-        self.mainRepo = repo
-        self.currentRepo = repo
-        
+    def __init__(self, parent, id, repo):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, "stupidgit", size=(550,600))
+
         self.CreateMenu()
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -22,8 +20,10 @@ class MainWindow(wx.Frame):
 
         if repo:
             self.emptyText = None
-            self.CreateRepoControls()
+            self.SetMainRepo(repo)
         else:
+            self.mainRepo = None
+            self.currentRepo = None
             self.CreateEmptyText()
 
     def CreateMenu(self):
@@ -45,7 +45,7 @@ class MainWindow(wx.Frame):
         wx.EVT_MENU(self, ID_EXIT, self.OnExit)
 
     def OnNewWindow(self, e):
-        win = MainWindow(None, -1, "stupidgit", None)
+        win = MainWindow(None, -1, None)
         win.Show(True)
 
     def OnNewRepository(self, e):
@@ -56,8 +56,13 @@ class MainWindow(wx.Frame):
         if not repodir: return
 
         try:
-            self.mainRepo = Repository(repodir)
-            self.CreateRepoControls()
+            repo = Repository(repodir)
+
+            if self.mainRepo:
+                new_win = MainWindow(None, -1, repo)
+                new_win.Show(True)
+            else:
+                self.SetMainRepo(repo)
         except GitError, msg:
             wx.MessageBox(str(msg), 'Error', style=wx.OK|wx.ICON_ERROR)
 
@@ -116,6 +121,18 @@ class MainWindow(wx.Frame):
     def CreateEmptyText(self):
         self.emptyText = wx.StaticText(self, -1, 'Welcome to stupidgit!\n\nYou can create or open a repository in the File menu.')
         self.sizer.Add(self.emptyText, 1, wx.EXPAND)
+
+    def SetMainRepo(self, repo):
+        self.mainRepo = repo
+        self.currentRepo = repo
+
+        if repo:
+            title = "stupidgit - %s" % os.path.basename(repo.dir)
+        else:
+            title = "stupidgit"
+
+        self.SetTitle(title)
+        self.CreateRepoControls()
 
     def SetRepo(self, repo):
         self.currentRepo = repo

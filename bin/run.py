@@ -27,6 +27,6 @@ try:
 except GitError:
     repo = None
 app = wx.PySimpleApp()
-win = MainWindow(None, -1, 'stupidgit', repo)
+win = MainWindow(None, -1, repo)
 win.Show(True)
 app.MainLoop()
