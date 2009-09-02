@@ -5,9 +5,8 @@ from IndexTab import IndexTab
 import wx
 
 ID_NEWWINDOW = 101
-ID_NEW       = 102
-ID_OPEN      = 103
-ID_EXIT      = 104
+ID_OPEN      = 102
+ID_EXIT      = 103
 
 class MainWindow(wx.Frame):
     def __init__(self, parent, id, repo):
@@ -30,7 +29,6 @@ class MainWindow(wx.Frame):
         filemenu = wx.Menu()
         filemenu.Append(ID_NEWWINDOW, "&New window", "Open new window")
         filemenu.AppendSeparator()
-        filemenu.Append(ID_NEW, "&New repository", "Create a new repository")
         filemenu.Append(ID_OPEN, "&Open repository", "Open an existing repository")
         filemenu.AppendSeparator()
         filemenu.Append(ID_EXIT, "E&xit", "Exit stupidgit")
@@ -40,16 +38,12 @@ class MainWindow(wx.Frame):
         self.SetMenuBar(menubar)
 
         wx.EVT_MENU(self, ID_NEWWINDOW, self.OnNewWindow)
-        wx.EVT_MENU(self, ID_NEW, self.OnNewRepository)
         wx.EVT_MENU(self, ID_OPEN, self.OnOpenRepository)
         wx.EVT_MENU(self, ID_EXIT, self.OnExit)
 
     def OnNewWindow(self, e):
         win = MainWindow(None, -1, None)
         win.Show(True)
-
-    def OnNewRepository(self, e):
-        pass
 
     def OnOpenRepository(self, e):
         repodir = wx.DirSelector("Open repository")
@@ -90,11 +84,8 @@ class MainWindow(wx.Frame):
         self.moduleChooser.Select(0)
         self.Bind(wx.EVT_CHOICE, self.OnModuleChosen, self.moduleChooser)
 
-        self.manageBtn = wx.Button(self.topPanel, -1, 'Manage modules')
-        topSizer.Add(self.manageBtn, 0, wx.ALIGN_CENTRE_VERTICAL | wx.LEFT | wx.RIGHT, 5)
-
         self.refreshBtn = wx.Button(self.topPanel, -1, 'Refresh')
-        topSizer.Add(self.refreshBtn, 0, wx.ALIGN_CENTRE_VERTICAL | wx.RIGHT, 5)
+        topSizer.Add(self.refreshBtn, 0, wx.ALIGN_CENTRE_VERTICAL | wx.LEFT | wx.RIGHT, 5)
         self.Bind(wx.EVT_BUTTON, self.OnRefresh, self.refreshBtn)
 
         # Notebook
