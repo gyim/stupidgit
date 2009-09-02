@@ -33,7 +33,7 @@ class MainWindow(wx.Frame):
         filemenu.Append(ID_NEW, "&New repository", "Create a new repository")
         filemenu.Append(ID_OPEN, "&Open repository", "Open an existing repository")
         filemenu.AppendSeparator()
-        filemenu.Append(ID_EXIT, "E&xit", "Exit ugitwx")
+        filemenu.Append(ID_EXIT, "E&xit", "Exit stupidgit")
 
         menubar = wx.MenuBar()
         menubar.Append(filemenu, "&File")
@@ -45,7 +45,7 @@ class MainWindow(wx.Frame):
         wx.EVT_MENU(self, ID_EXIT, self.OnExit)
 
     def OnNewWindow(self, e):
-        win = MainWindow(None, -1, "ugitwx", None)
+        win = MainWindow(None, -1, "stupidgit", None)
         win.Show(True)
 
     def OnNewRepository(self, e):
@@ -114,7 +114,7 @@ class MainWindow(wx.Frame):
         self.sizer.Layout()
 
     def CreateEmptyText(self):
-        self.emptyText = wx.StaticText(self, -1, 'Welcome to ugitwx!\n\nYou can create or open a repository in the File menu.')
+        self.emptyText = wx.StaticText(self, -1, 'Welcome to stupidgit!\n\nYou can create or open a repository in the File menu.')
         self.sizer.Add(self.emptyText, 1, wx.EXPAND)
 
     def SetRepo(self, repo):

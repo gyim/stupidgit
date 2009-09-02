@@ -6,17 +6,17 @@ import os
 import os.path
 import wx
 
-# Add module path .. if ../ugitwx exists
+# Add module path .. if ../stupidgit exists
 curfile = __file__
 if os.path.islink(curfile):
     curfile = os.path.abspath(os.readlink(curfile))
 curdir = os.path.dirname(curfile)
-moduledir = os.path.abspath(os.path.join(curdir, '..', 'ugitwx'))
+moduledir = os.path.abspath(os.path.join(curdir, '..', 'stupidgit'))
 if os.path.isdir(moduledir):
     sys.path.insert(0, os.path.dirname(moduledir))
 
-# Load ugitwx module
-from ugitwx import *
+# Load stupidgit module
+from stupidgit import *
 
 # Parse arguments
 repodir = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
@@ -27,6 +27,6 @@ try:
 except GitError:
     repo = None
 app = wx.PySimpleApp()
-win = MainWindow(None, -1, 'ugitwx', repo)
+win = MainWindow(None, -1, 'stupidgit', repo)
 win.Show(True)
 app.MainLoop()
