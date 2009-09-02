@@ -1,6 +1,7 @@
 import wx
 import git
 import platformspec
+from util import *
 
 COLW  = 12 # Column width
 LINH  = 16 # Line height
@@ -303,14 +304,14 @@ class CommitList(wx.ScrolledWindow):
                 dc.SetPen(commit_pen)
                 dc.SetBrush(commit_brush)
                 xx, yy = self.CalcScrolledPosition(x+2, y+1)
-                dc.DrawText(refname, xx, yy)
+                dc.DrawText(safe_unicode(refname), xx, yy)
 
             # Draw message
             dc.SetFont(commit_font)
             x = text_column*COLW + offx + msg_offset
             y = node.y*LINH + offy - LINH/2
             xx, yy = self.CalcScrolledPosition(x, y)
-            dc.DrawText(node.commit.short_msg, xx, yy)
+            dc.DrawText(safe_unicode(node.commit.short_msg), xx, yy)
 
         dc.EndDrawing()
 

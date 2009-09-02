@@ -1,6 +1,7 @@
 import wx
 import wx.stc
 import platformspec
+from util import *
 
 STYLE_NORMAL  = 1
 STYLE_COMMIT  = 2
@@ -47,7 +48,6 @@ class DiffViewer(wx.Panel):
             self.textCtrl.StyleSetFont(style, font)
             self.textCtrl.StyleSetForeground(style, fg)
             self.textCtrl.StyleSetBackground(style, bg)
-
 
     def Clear(self):
         self.textCtrl.SetReadOnly(False)
@@ -102,7 +102,7 @@ class DiffViewer(wx.Panel):
                     style = STYLE_FILE
 
             # Add line
-            self.textCtrl.AddText(line + '\n')
+            self.textCtrl.AddText(safe_unicode(line) + '\n')
             self.textCtrl.StartStyling(pos, 0xff)
             self.textCtrl.SetStyling(len(line), style)
             pos += len(line) + 1

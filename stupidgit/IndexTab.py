@@ -4,9 +4,11 @@ import wx
 import wx.html
 import os
 import sys
+
+import Wizard
 from DiffViewer import DiffViewer
 from git import GitError
-import Wizard
+from util import *
 
 FILE_ADDED       = 'A'
 FILE_MODIFIED    = 'M'
@@ -314,7 +316,6 @@ class CommitWizard(Wizard.Wizard):
         s.Add(authorSizer, 0, wx.EXPAND)
 
         self.authorEntry = wx.TextCtrl(self.commitPage, -1, style=wx.TE_READONLY)
-        self.authorEntry.SetValue('Somebody in Europe')
         self.authorEntry.Disable()
         authorSizer.Add(self.authorEntry, 1, wx.ALL, 5)
 
@@ -348,7 +349,7 @@ class CommitWizard(Wizard.Wizard):
         # Get author info
         self.authorName  = self.repo.run_cmd(['config', 'user.name']).strip()
         self.authorEmail = self.repo.run_cmd(['config', 'user.email']).strip()
-        self.authorEntry.SetValue("%s <%s>" % (self.authorName, self.authorEmail))
+        self.authorEntry.SetValue(u"%s <%s>" % (safe_unicode(self.authorName), safe_unicode(self.authorEmail)))
 
         # Show first page
         if self.hasSubmoduleChanges:
