@@ -35,7 +35,7 @@ def git_binary():
     _git = None
     raise GitError, "git executable not found"
 
-def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False):
+def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False, input=None):
     # Check args
     if type(args) in [str, unicode]:
         args = [args]
@@ -53,9 +53,18 @@ def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False)
     if type(args) != list:
         args = [args]
 
+    if input == None:
+        s = None
+    else:
+        s = subprocess.PIPE
+
     p = subprocess.Popen([git_binary()] + args, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    stdout,stderr = p.communicate()
+                         stderr=subprocess.PIPE, stdin=s)
+
+    if input == None:
+        stdout,stderr = p.communicate()
+    else:
+        stdout,stderr = p.communicate(str(input))
     
     # Return command output in a form given by arguments
     ret = []
@@ -180,6 +189,37 @@ class Repository(object):
 
         commits.reverse()
         return commits
+
+    def commit(self, author_name, author_email, msg, amend=False):
+        # TODO: handle amend; author_name, author_email
+
+        # Get HEAD sha1 id
+        head = self.run_cmd(['rev-parse', 'HEAD']).strip()
+        parents = [head]
+
+        # Get merge head if exists
+        try:
+            merge_head_filename = os.path.join(self.dir, '.git', 'MERGE_HEAD')
+            if os.path.isfile(merge_head_filename):
+                f = open(merge_head_filename)
+                p = f.read().strip()
+                f.close()
+                parents.append(p)
+        except OSError:
+            raise GitError, "Cannot open MERGE_HEAD file"
+
+        # Write tree
+        tree = self.run_cmd(['write-tree'], raise_error=True).strip()
+
+        # Write commit
+        parent_args = []
+        for parent in parents:
+            parent_args += ['-p', parent]
+
+        commit = self.run_cmd(['commit-tree', tree] + parent_args, raise_error=True, input=msg).strip()
+
+        # Update reference
+        self.run_cmd(['update-ref', 'HEAD', commit], raise_error=True)
 
 class Commit(object):
     def __init__(self, repo):

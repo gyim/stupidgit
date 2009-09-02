@@ -5,6 +5,8 @@ import wx.html
 import os
 import sys
 from DiffViewer import DiffViewer
+from git import GitError
+import Wizard
 
 FILE_ADDED       = 'A'
 FILE_MODIFIED    = 'M'
@@ -198,7 +200,13 @@ class IndexTab(wx.Panel):
         self.diffViewer.SetDiffText(diff_text)
 
     def OnCommit(self, e):
-        pass
+        if len(self.stagedChanges) == 0:
+            return
+
+        # Show commit wizard
+        commit_wizard = CommitWizard(self.mainWindow, -1, self.repo)
+        commit_wizard.RunWizard()
+        self.Refresh()
 
     def OnReset(self, e):
         msg = wx.MessageDialog(
@@ -276,4 +284,130 @@ def is_binary_file(file):
                 return True
 
     return False
+
+class CommitWizard(Wizard.Wizard):
+    def __init__(self, parent, id, repo):
+        Wizard.Wizard.__init__(self, parent, id)
+        self.repo = repo
+
+        # --- Modified submodules warning page ---
+        self.submoduleWarningPage = self.CreateWarningPage(
+            "Warning",
+
+            "There are uncommitted changes in one or more submodules.\n\n" +
+            "If you want these changes to be saved in this version, " +
+            "commit the submodules first, then stage the new submodule versions " +
+            "to the main module.\n\n" +
+            "Do you still want to continue?",
+
+            [Wizard.BTN_CANCEL, Wizard.BTN_CONTINUE]
+        )
+
+        # --- Commit page ---
+        self.commitPage = self.CreatePage("Commit staged changes")
+        s = self.commitPage.sizer
+
+        # Author
+        s.Add(wx.StaticText(self.commitPage, -1, "Author:"), 0, wx.TOP, 5)
+
+        authorSizer = wx.BoxSizer(wx.HORIZONTAL)
+        s.Add(authorSizer, 0, wx.EXPAND)
+
+        self.authorEntry = wx.TextCtrl(self.commitPage, -1, style=wx.TE_READONLY)
+        self.authorEntry.SetValue('Somebody in Europe')
+        self.authorEntry.Disable()
+        authorSizer.Add(self.authorEntry, 1, wx.ALL, 5)
+
+        self.changeAuthorBtn = wx.Button(self.commitPage, -1, 'Change')
+        authorSizer.Add(self.changeAuthorBtn, 0, wx.ALL, 5)
+        
+        # Short message
+        s.Add(wx.StaticText(self.commitPage, -1, "Commit description:"), 0, wx.TOP, 5)
+        self.shortmsgEntry = wx.TextCtrl(self.commitPage, -1)
+        s.Add(self.shortmsgEntry, 0, wx.EXPAND | wx.ALL, 5)
+
+        # Details
+        s.Add(wx.StaticText(self.commitPage, -1, "Commit details:"), 0, wx.TOP, 5)
+        self.detailsEntry = wx.TextCtrl(self.commitPage, -1, style=wx.TE_MULTILINE)
+        s.Add(self.detailsEntry, 1, wx.EXPAND | wx.ALL, 5)
+
+        # Amend
+        self.amendChk = wx.CheckBox(self.commitPage, -1, "Amend (add to previous commit)")
+        s.Add(self.amendChk, 0, wx.EXPAND | wx.ALL, 5)
+
+    def OnStart(self):
+        # Check whether submodules have changes
+        self.hasSubmoduleChanges = False
+        for module in self.repo.submodules:
+            diffs = module.run_cmd(['diff', 'HEAD'])
+            new_files = module.run_cmd(['ls-files', '--others', '--exclude-standard'])
+            if len(diffs.strip()) > 0 or len(new_files.strip()) > 0:
+                self.hasSubmoduleChanges = True
+                break
+
+        # Get author info
+        self.authorName  = self.repo.run_cmd(['config', 'user.name']).strip()
+        self.authorEmail = self.repo.run_cmd(['config', 'user.email']).strip()
+        self.authorEntry.SetValue("%s <%s>" % (self.authorName, self.authorEmail))
+
+        # Show first page
+        if self.hasSubmoduleChanges:
+            self.commitPage.buttons = [Wizard.BTN_PREV, Wizard.BTN_FINISH]
+            self.SetPage(self.submoduleWarningPage)
+        else:
+            self.commitPage.buttons = [Wizard.BTN_CANCEL, Wizard.BTN_FINISH]
+            self.SetPage(self.commitPage)
+
+    def OnButtonClicked(self, button):
+        if button == Wizard.BTN_CANCEL:
+            self.EndWizard(0)
+        
+        # Submodule warning page
+        if self.currentPage == self.submoduleWarningPage:
+            self.SetPage(self.commitPage)
+
+        # Commit page
+        elif self.currentPage == self.commitPage:
+            if button == Wizard.BTN_PREV:
+                self.SetPage(self.submoduleWarningPage)
+            elif button == Wizard.BTN_FINISH:
+                if self.Validate():
+                    # Commit changes
+                    short_msg = self.shortmsgEntry.GetValue()
+                    details = self.detailsEntry.GetValue()
+
+                    if len(details.strip()):
+                        msg = "%s\n\n%s" % (short_msg, details)
+                    else:
+                        msg = short_msg
+
+                    try:
+                        self.repo.commit(self.authorName, self.authorEmail, msg)
+                    except GitError, msg:
+                        msg = wx.MessageDialog(
+                            self,
+                            msg,
+                            "Git error",
+                            wx.ICON_ERROR | wx.OK
+                        )
+                        
+                    self.EndWizard(0)
+                else:
+                    # Show alert
+                    if len(self.authorName) == 0 or len(self.authorEmail) == 0:
+                        errormsg = "Please set author name!"
+                    else:
+                        errormsg = "Please fill in commit description!"
+
+                    msg = wx.MessageDialog(
+                        self,
+                        errormsg,
+                        "Notice",
+                        wx.ICON_EXCLAMATION | wx.OK
+                    )
+                    msg.ShowModal()
+
+    def Validate(self):
+        return len(self.authorName) != 0 and len(self.authorEmail) != 0 and \
+            len(self.shortmsgEntry.GetValue()) != 0
 
