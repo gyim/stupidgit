@@ -376,6 +376,7 @@ class CommitWizard(Wizard.Wizard):
                     # Commit changes
                     short_msg = self.shortmsgEntry.GetValue()
                     details = self.detailsEntry.GetValue()
+                    is_amend = self.amendChk.GetValue()
 
                     if len(details.strip()):
                         msg = "%s\n\n%s" % (short_msg, details)
@@ -383,7 +384,7 @@ class CommitWizard(Wizard.Wizard):
                         msg = short_msg
 
                     try:
-                        self.repo.commit(self.authorName, self.authorEmail, msg)
+                        self.repo.commit(self.authorName, self.authorEmail, msg, amend=is_amend)
                     except GitError, msg:
                         msg = wx.MessageDialog(
                             self,

@@ -35,7 +35,7 @@ def git_binary():
     _git = None
     raise GitError, "git executable not found"
 
-def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False, input=None):
+def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False, input=None, env={}):
     # Check args
     if type(args) in [str, unicode]:
         args = [args]
@@ -58,8 +58,11 @@ def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False,
     else:
         s = subprocess.PIPE
 
+    git_env = dict(os.environ)
+    git_env.update(env)
+
     p = subprocess.Popen([git_binary()] + args, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, stdin=s)
+                         stderr=subprocess.PIPE, stdin=s, env=git_env)
 
     if input == None:
         stdout,stderr = p.communicate()
@@ -191,24 +194,35 @@ class Repository(object):
         return commits
 
     def commit(self, author_name, author_email, msg, amend=False):
-        # TODO: handle amend; author_name, author_email
+        if amend:
+            # Get details of current HEAD
+            is_merge_resolve = False
 
-        # Get HEAD sha1 id
-        head = self.run_cmd(['rev-parse', 'HEAD']).strip()
-        parents = [head]
+            output = self.run_cmd(['log', '-1', '--pretty=format:%P%n%an%n%ae%n%aD'])
+            if not output.strip():
+                raise GitError, "Cannot amend in an empty repository!"
 
-        # Get merge head if exists
-        is_merge = False
-        try:
-            merge_head_filename = os.path.join(self.dir, '.git', 'MERGE_HEAD')
-            if os.path.isfile(merge_head_filename):
-                f = open(merge_head_filename)
-                p = f.read().strip()
-                f.close()
-                parents.append(p)
-                is_merge = True
-        except OSError:
-            raise GitError, "Cannot open MERGE_HEAD file"
+            parents, author_name, author_email, author_date = output.split('\n')
+            parents = parents.split(' ')
+        else:
+            author_date = None # Use current date
+
+            # Get HEAD sha1 id
+            head = self.run_cmd(['rev-parse', 'HEAD']).strip()
+            parents = [head]
+
+            # Get merge head if exists
+            is_merge_resolve = False
+            try:
+                merge_head_filename = os.path.join(self.dir, '.git', 'MERGE_HEAD')
+                if os.path.isfile(merge_head_filename):
+                    f = open(merge_head_filename)
+                    p = f.read().strip()
+                    f.close()
+                    parents.append(p)
+                    is_merge_resolve = True
+            except OSError:
+                raise GitError, "Cannot open MERGE_HEAD file"
 
         # Write tree
         tree = self.run_cmd(['write-tree'], raise_error=True).strip()
@@ -218,13 +232,23 @@ class Repository(object):
         for parent in parents:
             parent_args += ['-p', parent]
 
-        commit = self.run_cmd(['commit-tree', tree] + parent_args, raise_error=True, input=msg).strip()
+        env = {}
+        if author_name: env['GIT_AUTHOR_NAME'] = author_name
+        if author_email: env['GIT_AUTHOR_EMAIL'] = author_email
+        if author_date: env['GIT_AUTHOR_DATE'] = author_date
+
+        commit = self.run_cmd(
+            ['commit-tree', tree] + parent_args,
+            raise_error=True,
+            input=msg,
+            env=env
+        ).strip()
 
         # Update reference
         self.run_cmd(['update-ref', 'HEAD', commit], raise_error=True)
 
         # Remove MERGE_HEAD
-        if is_merge:
+        if is_merge_resolve:
             try:
                 os.unlink(os.path.join(self.dir, '.git', 'MERGE_HEAD'))
                 os.unlink(os.path.join(self.dir, '.git', 'MERGE_MODE'))
