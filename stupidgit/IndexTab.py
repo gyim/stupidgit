@@ -320,6 +320,7 @@ class CommitWizard(Wizard.Wizard):
         authorSizer.Add(self.authorEntry, 1, wx.ALL, 5)
 
         self.changeAuthorBtn = wx.Button(self.commitPage, -1, 'Change')
+        self.Bind(wx.EVT_BUTTON, self.OnAuthorChange, self.changeAuthorBtn)
         authorSizer.Add(self.changeAuthorBtn, 0, wx.ALL, 5)
         
         # Short message
@@ -358,6 +359,25 @@ class CommitWizard(Wizard.Wizard):
         else:
             self.commitPage.buttons = [Wizard.BTN_CANCEL, Wizard.BTN_FINISH]
             self.SetPage(self.commitPage)
+
+    def OnAuthorChange(self, e):
+        # Show author dialog
+        dialog = AuthorDialog(self, -1, self.authorName, self.authorEmail)
+
+        if dialog.ShowModal():
+            self.authorName = dialog.authorName
+            self.authorEmail = dialog.authorEmail
+
+            # Save new author if necessary
+            if dialog.saveMode == AUTHOR_PROJECT_DEFAULT:
+                self.repo.run_cmd(['config', 'user.name', self.authorName])
+                self.repo.run_cmd(['config', 'user.email', self.authorEmail])
+            elif dialog.saveMode == AUTHOR_GLOBAL_DEFAULT:
+                self.repo.run_cmd(['config', '--global', 'user.name', self.authorName])
+                self.repo.run_cmd(['config', '--global', 'user.email', self.authorEmail])
+
+        # Update author entry
+        self.authorEntry.SetValue(u"%s <%s>" % (safe_unicode(self.authorName), safe_unicode(self.authorEmail)))
 
     def OnButtonClicked(self, button):
         if button == Wizard.BTN_CANCEL:
@@ -412,4 +432,64 @@ class CommitWizard(Wizard.Wizard):
     def Validate(self):
         return len(self.authorName) != 0 and len(self.authorEmail) != 0 and \
             len(self.shortmsgEntry.GetValue()) != 0
+
+AUTHOR_NOT_DEFAULT     = 0
+AUTHOR_PROJECT_DEFAULT = 1
+AUTHOR_GLOBAL_DEFAULT  = 2
+
+class AuthorDialog(wx.Dialog):
+    def __init__(self, parent, id, default_name, default_email):
+        wx.Dialog.__init__(self, parent, id, size=(350,280), title="Change author...")
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.sizer)
+
+        self.authorName = default_name
+        self.authorEmail = default_email
+        self.saveMode = AUTHOR_NOT_DEFAULT
+
+        # Name
+        self.sizer.Add(wx.StaticText(self, -1, "Name:"), 0, wx.ALL, 5)
+        self.nameEntry = wx.TextCtrl(self, -1)
+        self.nameEntry.SetValue(default_name)
+        self.sizer.Add(self.nameEntry, 0, wx.EXPAND | wx.ALL, 5)
+
+        # Email
+        self.emailEntry = wx.TextCtrl(self, -1)
+        self.emailEntry.SetValue(default_email)
+        self.sizer.Add(self.emailEntry, 0, wx.EXPAND | wx.ALL, 5)
+
+        # Save mode
+        self.saveModeBtns = wx.RadioBox(self, -1, "Save mode:", 
+            style=wx.RA_SPECIFY_ROWS,
+            choices=["Use only for this commit",
+                     "Save as project default",
+                     "Save as global default"]
+        )
+        self.sizer.Add(self.saveModeBtns, 1, wx.EXPAND | wx.ALL, 5)
+
+        # Finish buttons
+        self.buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.buttonSizer, 0, wx.ALL | wx.ALIGN_RIGHT, 5)
+
+        self.okBtn = wx.Button(self, -1, 'OK')
+        self.buttonSizer.Add(self.okBtn, 1, wx.ALL, 5)
+        self.Bind(wx.EVT_BUTTON, self.OnOk, self.okBtn)
+
+        self.cancelBtn = wx.Button(self, -1, 'Cancel')
+        self.buttonSizer.Add(self.cancelBtn, 1, wx.ALL, 5)
+        self.Bind(wx.EVT_BUTTON, self.OnCancel, self.cancelBtn)
+
+    def OnOk(self, e):
+        name = self.nameEntry.GetValue().strip()
+        email = self.emailEntry.GetValue().strip()
+
+        if name and email:
+            self.authorName = name
+            self.authorEmail = email
+            self.saveMode = self.saveModeBtns.GetSelection()
+            self.EndModal(1)
+
+    def OnCancel(self, e):
+        self.EndModal(0)
 
