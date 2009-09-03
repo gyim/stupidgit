@@ -198,6 +198,7 @@ class Repository(object):
         parents = [head]
 
         # Get merge head if exists
+        is_merge = False
         try:
             merge_head_filename = os.path.join(self.dir, '.git', 'MERGE_HEAD')
             if os.path.isfile(merge_head_filename):
@@ -205,6 +206,7 @@ class Repository(object):
                 p = f.read().strip()
                 f.close()
                 parents.append(p)
+                is_merge = True
         except OSError:
             raise GitError, "Cannot open MERGE_HEAD file"
 
@@ -220,6 +222,16 @@ class Repository(object):
 
         # Update reference
         self.run_cmd(['update-ref', 'HEAD', commit], raise_error=True)
+
+        # Remove MERGE_HEAD
+        if is_merge:
+            try:
+                os.unlink(os.path.join(self.dir, '.git', 'MERGE_HEAD'))
+                os.unlink(os.path.join(self.dir, '.git', 'MERGE_MODE'))
+                os.unlink(os.path.join(self.dir, '.git', 'MERGE_MSG'))
+                os.unlink(os.path.join(self.dir, '.git', 'ORIG_HEAD'))
+            except OSError:
+                pass
 
 class Commit(object):
     def __init__(self, repo):
