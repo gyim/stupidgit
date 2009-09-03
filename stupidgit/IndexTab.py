@@ -336,6 +336,14 @@ class CommitWizard(Wizard.Wizard):
         # Amend
         self.amendChk = wx.CheckBox(self.commitPage, -1, "Amend (add to previous commit)")
         s.Add(self.amendChk, 0, wx.EXPAND | wx.ALL, 5)
+        self.Bind(wx.EVT_CHECKBOX, self.OnAmendChk, self.amendChk)
+
+        # Get HEAD info for amending
+        try:
+            output = self.repo.run_cmd(['log', '-1', '--pretty=format:%an%x00%ae%x00%s%x00%b'], raise_error=True)
+            self.amendAuthorName, self.amendAuthorEmail, self.amendShortMsg, self.amendDetails = output.split('\x00')
+        except GitError:
+            self.amendChk.Disable()
 
     def OnStart(self):
         # Check whether submodules have changes
@@ -378,6 +386,34 @@ class CommitWizard(Wizard.Wizard):
 
         # Update author entry
         self.authorEntry.SetValue(u"%s <%s>" % (safe_unicode(self.authorName), safe_unicode(self.authorEmail)))
+
+    def OnAmendChk(self, e):
+        is_amend = self.amendChk.GetValue()
+
+        if is_amend:
+            # Save current commit message
+            self.currentShortMsg = self.shortmsgEntry.GetValue()
+            self.currentDetails = self.detailsEntry.GetValue()
+
+            # Replace commit message with the one in HEAD
+            self.shortmsgEntry.SetValue(safe_unicode(self.amendShortMsg))
+            self.detailsEntry.SetValue(safe_unicode(self.amendDetails))
+
+            # Replace author, disable author change
+            self.authorEntry.SetValue(u"%s <%s>" % (safe_unicode(self.amendAuthorName), safe_unicode(self.amendAuthorEmail)))
+            self.changeAuthorBtn.Disable()
+        else:
+            # Save modified amend message
+            self.amendShortMsg = self.shortmsgEntry.GetValue()
+            self.amendDetails = self.detailsEntry.GetValue()
+
+            # Write back old commit message
+            self.shortmsgEntry.SetValue(safe_unicode(self.currentShortMsg))
+            self.detailsEntry.SetValue(safe_unicode(self.currentDetails))
+
+            # Write back chosen author, enable author change
+            self.authorEntry.SetValue(u"%s <%s>" % (safe_unicode(self.authorName), safe_unicode(self.authorEmail)))
+            self.changeAuthorBtn.Enable()
 
     def OnButtonClicked(self, button):
         if button == Wizard.BTN_CANCEL:
