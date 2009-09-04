@@ -4,6 +4,9 @@ def safe_unicode(s):
     '''Creates unicode object from string s.
     It tries to decode string as UTF-8, fallbacks to current locale
     or ISO-8859-1 if both decode attemps fail'''
+
+    if type(s) == unicode:
+        return s
     
     try:
         return s.decode('UTF-8')
@@ -19,3 +22,7 @@ def safe_unicode(s):
             pass
 
     return s.decode('ISO-8859-1')
+
+def utf8_str(s):
+    s = safe_unicode(s)
+    return s.encode('UTF-8')

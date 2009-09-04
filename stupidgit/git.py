@@ -3,6 +3,7 @@ import os.path
 import sys
 import subprocess
 import re
+from util import *
 
 _git = None
 commit_pool = {}
@@ -67,7 +68,7 @@ def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False,
     if input == None:
         stdout,stderr = p.communicate()
     else:
-        stdout,stderr = p.communicate(str(input))
+        stdout,stderr = p.communicate(utf8_str(input))
     
     # Return command output in a form given by arguments
     ret = []
