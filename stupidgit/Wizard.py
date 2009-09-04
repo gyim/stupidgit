@@ -80,6 +80,7 @@ class Wizard(wx.Dialog):
         page.buttons = buttons
         page.sizer = wx.BoxSizer(wx.VERTICAL)
         page.SetSizer(page.sizer)
+        page.Hide()
 
         return page
 
