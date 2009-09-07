@@ -33,17 +33,42 @@ class CommitList(wx.ScrolledWindow):
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
         self.repo = None
         self.selection = []
+        self.mainRepo = None
+        self.mainRepoSelection = []
         self.allowMultiple = allowMultiple
 
     def SetRepo(self, repo):
-        if self.repo != repo:
+        # Save selection if the last repo was the main repo
+        if self.repo and self.repo == self.mainRepo:
+            self.mainRepo = self.repo
+            self.mainRepoSelection = [ self.rows[row][0].commit.sha1 for row in self.selection ]
+
+        # Clear selection, scroll to top
+        repo_changed = (self.repo != repo)
+        if repo_changed:
             self.selection = []
             self.Scroll(0, 0)
 
+        # Save main repo
+        if not repo.parent:
+            self.mainRepo = repo
+
+        # Load commits
         self.repo = repo
         self.commits = self.repo.get_log(['--topo-order', '--all'])
         self.CreateLogGraph()
 
+        # If this is a submodule, select versions that are referenced
+        # by the parent module
+        if repo_changed and self.repo != self.mainRepo:
+            for version in self.mainRepoSelection:
+                submodule_version = self.repo.parent.get_submodule_version(self.repo.name, version)
+                if submodule_version:
+                    rows = [ r for r in self.rows if r[0].commit.sha1 == submodule_version ]
+                    if rows:
+                        self.selection.append(self.rows.index(rows[0]))
+
+        # Setup UI
         self.SetVirtualSize((-1, (len(self.rows)+1) * LINH))
         self.SetScrollRate(LINH, LINH)
         self.Refresh()
