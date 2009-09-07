@@ -316,7 +316,6 @@ class CommitWizard(Wizard.Wizard):
         s.Add(authorSizer, 0, wx.EXPAND)
 
         self.authorEntry = wx.TextCtrl(self.commitPage, -1, style=wx.TE_READONLY)
-        self.authorEntry.Disable()
         authorSizer.Add(self.authorEntry, 1, wx.ALL, 5)
 
         self.changeAuthorBtn = wx.Button(self.commitPage, -1, 'Change')
@@ -358,7 +357,7 @@ class CommitWizard(Wizard.Wizard):
         # Get author info
         self.authorName  = self.repo.run_cmd(['config', 'user.name']).strip()
         self.authorEmail = self.repo.run_cmd(['config', 'user.email']).strip()
-        self.authorEntry.SetValue(u"%s <%s>" % (safe_unicode(self.authorName), safe_unicode(self.authorEmail)))
+        self.UpdateAuthorEntry()
 
         # Show first page
         if self.hasSubmoduleChanges:
@@ -385,7 +384,15 @@ class CommitWizard(Wizard.Wizard):
                 self.repo.run_cmd(['config', '--global', 'user.email', self.authorEmail])
 
         # Update author entry
-        self.authorEntry.SetValue(u"%s <%s>" % (safe_unicode(self.authorName), safe_unicode(self.authorEmail)))
+        self.UpdateAuthorEntry()
+
+    def UpdateAuthorEntry(self, name=None, email=None):
+        if name == None:
+            name = self.authorName
+        if email == None:
+            email = self.authorEmail
+
+        self.authorEntry.SetValue(u"%s <%s>" % (safe_unicode(name), safe_unicode(email)))
 
     def OnAmendChk(self, e):
         is_amend = self.amendChk.GetValue()
@@ -400,7 +407,7 @@ class CommitWizard(Wizard.Wizard):
             self.detailsEntry.SetValue(safe_unicode(self.amendDetails))
 
             # Replace author, disable author change
-            self.authorEntry.SetValue(u"%s <%s>" % (safe_unicode(self.amendAuthorName), safe_unicode(self.amendAuthorEmail)))
+            self.UpdateAuthorEntry(self.amendAuthorName, self.amendAuthorEmail)
             self.changeAuthorBtn.Disable()
         else:
             # Save modified amend message
@@ -412,7 +419,7 @@ class CommitWizard(Wizard.Wizard):
             self.detailsEntry.SetValue(safe_unicode(self.currentDetails))
 
             # Write back chosen author, enable author change
-            self.authorEntry.SetValue(u"%s <%s>" % (safe_unicode(self.authorName), safe_unicode(self.authorEmail)))
+            self.UpdateAuthorEntry()
             self.changeAuthorBtn.Enable()
 
     def OnButtonClicked(self, button):
