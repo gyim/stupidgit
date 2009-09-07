@@ -143,6 +143,9 @@ class CommitList(wx.ScrolledWindow):
         else:
             self._add_reference(self.repo.head, 'DETACHED HEAD', REF_DETACHEDHEAD)
 
+        if self.repo.main_ref:
+            self._add_reference(self.repo.main_ref, 'MAIN', REF_MODULE)
+
         for branch,commit_id in self.repo.branches.iteritems():
             if branch != self.repo.current_branch:
                 self._add_reference(commit_id, branch, REF_BRANCH)
@@ -198,14 +201,16 @@ class CommitList(wx.ScrolledWindow):
             wx.Pen(wx.Colour(0,255,0,255), width=1),       # REF_REMOTE
             wx.Pen(wx.Colour(128,128,0,255), width=1),     # REF_TAG
             wx.Pen(wx.Colour(255,128,128,255), width=1),   # REF_HEADBRANCH
-            wx.Pen(wx.Colour(255,0,0,255), width=1)        # REF_DETACHEDHEAD
+            wx.Pen(wx.Colour(255,0,0,255), width=1),       # REF_DETACHEDHEAD
+            wx.Pen(wx.Colour(160,160,160,255), width=1)    # REF_MODULE
         ]
         ref_brushes = [
             wx.Brush(wx.Colour(160,160,255,255)), # REF_BRANCH
             wx.Brush(wx.Colour(128,255,128,255)), # REF_REMOTE
             wx.Brush(wx.Colour(255,255,128,255)), # REF_TAG
             wx.Brush(wx.Colour(255,160,160,255)), # REF_HEADBRANCH
-            wx.Brush(wx.Colour(255,128,128,255))  # REF_DETACHEDHEAD
+            wx.Brush(wx.Colour(255,128,128,255)), # REF_DETACHEDHEAD
+            wx.Brush(wx.Colour(192,192,192,255))  # REF_MODULE
         ]
         ref_font = platformspec.Font(9)
 
@@ -282,7 +287,7 @@ class CommitList(wx.ScrolledWindow):
                 y = node.y*LINH + offy - LINH/2 + 1
                 width,height = dc.GetTextExtent(refname)
                 
-                if reftype in [REF_HEADBRANCH, REF_DETACHEDHEAD]:
+                if reftype in [REF_HEADBRANCH, REF_DETACHEDHEAD, REF_MODULE]:
                     points = [
                         (x, y+LINH/2-1),
                         (x+6, y),
@@ -470,6 +475,7 @@ REF_REMOTE       = 1
 REF_TAG          = 2
 REF_HEADBRANCH   = 3
 REF_DETACHEDHEAD = 4
+REF_MODULE       = 5
 class GraphNode(object):
     def __init__(self, commit):
         self.commit = commit

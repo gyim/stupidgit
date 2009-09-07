@@ -118,11 +118,12 @@ class Repository(object):
         if retcode not in [0,1]:
             raise GitError, "Directory is not a git repository"
 
+        # Load refs
+        self.load_refs()
+
         # Get submodule info
         self.submodules = self.get_submodules()
         self.all_modules = [self] + self.submodules
-
-        self.load_refs()
 
     def load_refs(self):
         self.branches = {}
@@ -141,6 +142,12 @@ class Repository(object):
                 self.current_branch = head[16:]
         except OSError:
             pass
+
+        # Main module reference
+        if self.parent:
+            self.main_ref = self.parent.get_submodule_version(self.name, 'HEAD')
+        else:
+            self.main_ref = None
 
         # References
         for line in self.run_cmd(['show-ref']).split('\n'):
@@ -177,6 +184,21 @@ class Repository(object):
                 repos.append(Repository(repo_path, name=opts['path'], parent=self))
 
         return repos
+
+    def get_submodule_version(self, submodule_name, main_version):
+        dir = os.path.dirname(submodule_name)
+        name = os.path.basename(submodule_name)
+        output = self.run_cmd(['ls-tree', '-z', '%s:%s' % (main_version, dir)])
+        for line in output.split('\x00'):
+            if not line.strip(): continue
+
+            meta, filename = line.split('\t')
+            if filename == name:
+                mode, filetype, sha1 = meta.split(' ')
+                if filetype == 'commit':
+                    return sha1
+
+        return None
 
     def get_log(self, args=[]):
         log = self.run_cmd(['log', '-z', '--pretty=format:%H%n%h%n%P%n%T%n%an%n%ae%n%aD%n%s%n%b']+args)
