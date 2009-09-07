@@ -292,9 +292,20 @@ class CommitWizard(Wizard.Wizard):
         Wizard.Wizard.__init__(self, parent, id)
         self.repo = repo
 
+        # --- Detached head warning page ---
+        self.detachedWarningPage = self.CreateWarningPage(
+            "Warning: committing to a detached HEAD",
+
+            "Your HEAD is not connected with a local branch. If you commit and then " +
+            "checkout to a different version later, your commit will be lost.\n\n" +
+            "Do you still want to continue?",
+
+            [Wizard.BTN_CANCEL, Wizard.BTN_CONTINUE]
+        )
+
         # --- Modified submodules warning page ---
         self.submoduleWarningPage = self.CreateWarningPage(
-            "Warning",
+            "Warning: uncommitted changes in submodules",
 
             "There are uncommitted changes in one or more submodules.\n\n" +
             "If you want these changes to be saved in this version, " +
@@ -306,7 +317,10 @@ class CommitWizard(Wizard.Wizard):
         )
 
         # --- Commit page ---
-        self.commitPage = self.CreatePage("Commit staged changes")
+        self.commitPage = self.CreatePage(
+            "Commit staged changes",
+            [Wizard.BTN_CANCEL, Wizard.BTN_FINISH]
+        )
         s = self.commitPage.sizer
 
         # Author
@@ -354,17 +368,20 @@ class CommitWizard(Wizard.Wizard):
                 self.hasSubmoduleChanges = True
                 break
 
+        # Check whether HEAD is detached
+        self.isDetachedHead = (self.repo.current_branch == None)
+
         # Get author info
         self.authorName  = self.repo.run_cmd(['config', 'user.name']).strip()
         self.authorEmail = self.repo.run_cmd(['config', 'user.email']).strip()
         self.UpdateAuthorEntry()
 
         # Show first page
-        if self.hasSubmoduleChanges:
-            self.commitPage.buttons = [Wizard.BTN_PREV, Wizard.BTN_FINISH]
+        if self.isDetachedHead:
+            self.SetPage(self.detachedWarningPage)
+        elif self.hasSubmoduleChanges:
             self.SetPage(self.submoduleWarningPage)
         else:
-            self.commitPage.buttons = [Wizard.BTN_CANCEL, Wizard.BTN_FINISH]
             self.SetPage(self.commitPage)
 
     def OnAuthorChange(self, e):
@@ -426,8 +443,12 @@ class CommitWizard(Wizard.Wizard):
         if button == Wizard.BTN_CANCEL:
             self.EndWizard(0)
         
-        # Submodule warning page
-        if self.currentPage == self.submoduleWarningPage:
+        if self.currentPage == self.detachedWarningPage:
+            if self.hasSubmoduleChanges:
+                self.SetPage(self.submoduleWarningPage)
+            else:
+                self.SetPage(self.commitPage)
+        elif self.currentPage == self.submoduleWarningPage:
             self.SetPage(self.commitPage)
 
         # Commit page
