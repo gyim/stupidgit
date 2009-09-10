@@ -107,8 +107,11 @@ class IndexTab(wx.Panel):
 
     def OnStage(self, e):
         for row in self.unstagedList.GetSelections():
-            filename = self.unstagedChanges[row][0]
-            self.repo.run_cmd(['add', filename])
+            filename, change = self.unstagedChanges[row]
+            if change == FILE_DELETED:
+                self.repo.run_cmd(['rm', '--cached', filename])
+            else:
+                self.repo.run_cmd(['add', filename])
 
         self.Refresh()
 
