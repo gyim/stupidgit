@@ -73,10 +73,10 @@ def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False,
     # Return command output in a form given by arguments
     ret = []
 
-    if with_retcode:
-        if p.returncode != 0 and raise_error:
-            raise GitError, 'git returned with the following error:\n%s' % stderr
+    if p.returncode != 0 and raise_error:
+        raise GitError, 'git returned with the following error:\n%s' % stderr
 
+    if with_retcode:
         ret.append(p.returncode)
 
     ret.append(stdout)
