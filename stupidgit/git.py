@@ -166,6 +166,11 @@ class Repository(object):
                 except GitError:
                     pass
 
+        # Inverse reference hashes
+        self.branches_by_sha1 = invert_hash(self.branches)
+        self.remote_branches_by_sha1 = invert_hash(self.remote_branches)
+        self.tags_by_sha1 = invert_hash(self.tags)
+
     def run_cmd(self, args, **opts):
         return run_cmd(self.dir, args, **opts)
 
