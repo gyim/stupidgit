@@ -211,7 +211,7 @@ class IndexTab(wx.Panel):
         # Show commit wizard
         commit_wizard = CommitWizard(self.mainWindow, -1, self.repo)
         commit_wizard.RunWizard()
-        self.Refresh()
+        self.mainWindow.SetRepo(self.repo)
 
     def OnReset(self, e):
         msg = wx.MessageDialog(
