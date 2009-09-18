@@ -4,8 +4,10 @@ from DiffViewer import DiffViewer
 from git import GitError
 
 # Menu item ids
-MENU_CREATE_BRANCH      = 10000
-MENU_DELETE_BRANCH      = 11000
+MENU_CHECKOUT_DETACHED  = 10000
+MENU_CREATE_BRANCH      = 11000
+MENU_DELETE_BRANCH      = 12000
+MENU_CHECKOUT_BRANCH    = 13000
 
 # This array is used to provide unique ids for menu items
 # that refer to a branch
@@ -36,6 +38,7 @@ class HistoryTab(wx.Panel):
         # Context menu
         self.contextMenu = wx.Menu()
         wx.EVT_MENU(self, MENU_CREATE_BRANCH, self.OnCreateBranch)
+        wx.EVT_MENU(self, MENU_CHECKOUT_DETACHED, self.OnCheckout)
 
     def SetRepo(self, repo):
         # Branch indexes
@@ -47,6 +50,7 @@ class HistoryTab(wx.Panel):
                 # Menu events
                 index = len(branch_indexes)-1
                 wx.EVT_MENU(self, MENU_DELETE_BRANCH + index, self.OnDeleteBranch)
+                wx.EVT_MENU(self, MENU_CHECKOUT_BRANCH + index, self.OnCheckout)
 
         self.repo = repo
         self.commitList.SetRepo(repo)
@@ -93,6 +97,29 @@ class HistoryTab(wx.Panel):
             except GitError, msg:
                 wx.MessageBox(str(msg), 'Error', style=wx.OK|wx.ICON_ERROR)
 
+    def OnCheckout(self, e):
+        if e.GetId() == MENU_CHECKOUT_DETACHED:
+            checkout_target = self.contextCommit.sha1
+            confirmMsg = "Do you really want to checkout this commit as detached HEAD?"
+        else:
+            branch = branch_indexes[e.GetId() % 1000]
+            checkout_target = branch
+            confirmMsg = "Do you really want to checkout branch '%s'?" % branch
+
+        msg = wx.MessageDialog(
+            self.mainWindow,
+            confirmMsg,
+            "Confirmation",
+            wx.ICON_EXCLAMATION | wx.YES_NO | wx.YES_DEFAULT
+        )
+        if msg.ShowModal() == wx.ID_YES:
+            try:
+                self.repo.run_cmd(['checkout', checkout_target], raise_error=True)
+                self.repo.load_refs()
+                self.SetRepo(self.repo)
+            except GitError, msg:
+                wx.MessageBox(str(msg), 'Error', style=wx.OK|wx.ICON_ERROR)
+
     def SetupContextMenu(self, commit):
         branches = self.repo.branches_by_sha1.get(commit.sha1, [])
 
@@ -111,4 +138,12 @@ class HistoryTab(wx.Panel):
             for branch in branches:
                 menu_id = MENU_DELETE_BRANCH + branch_indexes.index(branch)
                 self.contextMenu.Append(menu_id, "Delete branch '%s'" % branch)
+
+        # Checkout
+        self.contextMenu.AppendSeparator()
+        if branches:
+            menu_id = MENU_CHECKOUT_BRANCH + branch_indexes.index(branch)
+            self.contextMenu.Append(menu_id, "Checkout branch '%s'" % branch)
+
+        self.contextMenu.Append(MENU_CHECKOUT_DETACHED, "Checkout as detached HEAD")
 
