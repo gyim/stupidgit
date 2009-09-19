@@ -1,10 +1,12 @@
 import wx
 from CommitList import CommitList, EVT_COMMITLIST_SELECT, EVT_COMMITLIST_RIGHTCLICK
 from DiffViewer import DiffViewer
+from Wizard import *
 from git import GitError
 
 # Menu item ids
 MENU_CHECKOUT_DETACHED  = 10000
+MENU_RESET_BRANCH       = 10001
 MENU_CREATE_BRANCH      = 11000
 MENU_DELETE_BRANCH      = 12000
 MENU_CHECKOUT_BRANCH    = 13000
@@ -39,6 +41,7 @@ class HistoryTab(wx.Panel):
         self.contextMenu = wx.Menu()
         wx.EVT_MENU(self, MENU_CREATE_BRANCH, self.OnCreateBranch)
         wx.EVT_MENU(self, MENU_CHECKOUT_DETACHED, self.OnCheckout)
+        wx.EVT_MENU(self, MENU_RESET_BRANCH, self.OnResetBranch)
 
     def SetRepo(self, repo):
         # Branch indexes
@@ -120,6 +123,18 @@ class HistoryTab(wx.Panel):
             except GitError, msg:
                 wx.MessageBox(str(msg), 'Error', style=wx.OK|wx.ICON_ERROR)
 
+    def OnResetBranch(self, e):
+        wizard = ResetWizard(self.mainWindow, -1, self.repo)
+        if wizard.RunWizard():
+            resetTypes = ['--soft', '--mixed', '--hard']
+            resetType = resetTypes[wizard.resetType]
+            try:
+                self.repo.run_cmd(['reset', resetType, self.contextCommit.sha1], raise_error=True)
+                self.repo.load_refs()
+                self.mainWindow.SetRepo(self.repo)
+            except GitError, msg:
+                wx.MessageBox(str(msg), 'Error', style=wx.OK|wx.ICON_ERROR)
+
     def SetupContextMenu(self, commit):
         branches = self.repo.branches_by_sha1.get(commit.sha1, [])
 
@@ -147,3 +162,59 @@ class HistoryTab(wx.Panel):
 
         self.contextMenu.Append(MENU_CHECKOUT_DETACHED, "Checkout as detached HEAD")
 
+        # Reset branch
+        if self.repo.current_branch:
+            self.contextMenu.AppendSeparator()
+            self.contextMenu.Append(MENU_RESET_BRANCH, "Reset branch '%s' here" % self.repo.current_branch)
+
+
+class ResetWizard(Wizard):
+    def __init__(self, parent, id, repo):
+        Wizard.__init__(self, parent, id)
+        self.repo = repo
+
+        # Choose reset type page
+        self.typePage = self.CreatePage(
+            "Choose reset type",
+            [BTN_CANCEL, BTN_CONTINUE]
+        )
+
+        font = wx.Font(16, wx.DEFAULT, wx.NORMAL, wx.BOLD) 
+        self.typePageCaption = wx.StaticText(self.typePage, -1, "Choose reset type")
+        self.typePageCaption.SetFont(font)
+        self.typePage.sizer.Add(self.typePageCaption, 0, wx.EXPAND | wx.ALL, 10)
+
+        self.typeBtns = wx.RadioBox(self.typePage, -1, "", 
+            style=wx.RA_SPECIFY_ROWS,
+            choices=[
+                "Soft reset: keep working directory and index untouched",
+                "Mixed reset: preserve working directory, reset index",
+                "Hard reset: discard ALL changes"
+            ]
+        )
+
+        self.typePage.sizer.Add(self.typeBtns, 1, wx.EXPAND | wx.ALL, 10)
+
+        # Warning page
+        self.warningPage = self.CreateWarningPage(
+            "Warning: you may lose commits",
+
+            ("You are about to reset the current branch (%s) to a different version. " +
+            "All commits that are not referenced by another branch, tag or " +
+            "remote branch will be lost.\n\n" +
+            "Do you really want to continue?") % self.repo.current_branch,
+
+            [BTN_CANCEL, BTN_FINISH]
+        )
+
+    def OnStart(self):
+        self.SetPage(self.typePage)
+
+    def OnButtonClicked(self, button):
+        if button == BTN_CONTINUE:
+            self.resetType = self.typeBtns.GetSelection()
+            self.SetPage(self.warningPage)
+        if button == BTN_CANCEL:
+            self.EndWizard(0)
+        if button == BTN_FINISH:
+            self.EndWizard(1)
