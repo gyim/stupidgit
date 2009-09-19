@@ -106,14 +106,14 @@ class HistoryTab(wx.Panel):
             wx.ICON_EXCLAMATION | wx.YES_NO | wx.YES_DEFAULT
         )
         if msg.ShowModal() == wx.ID_YES:
-            self.GitCommand(['checkout', checkout_target])
+            self.GitCommand(['checkout', checkout_target], True)
 
     def OnResetBranch(self, e):
         wizard = ResetWizard(self.mainWindow, -1, self.repo)
         if wizard.RunWizard():
             resetTypes = ['--soft', '--mixed', '--hard']
             resetType = resetTypes[wizard.resetType]
-            self.GitCommand(['reset', resetType, self.contextCommit.sha1])
+            self.GitCommand(['reset', resetType, self.contextCommit.sha1], True)
 
     def SetupContextMenu(self, commit):
         branches = self.repo.branches_by_sha1.get(commit.sha1, [])
@@ -147,10 +147,24 @@ class HistoryTab(wx.Panel):
             self.contextMenu.AppendSeparator()
             self.contextMenu.Append(MENU_RESET_BRANCH, "Reset branch '%s' here" % self.repo.current_branch)
 
-    def GitCommand(self, cmd, **opts):
+    def GitCommand(self, cmd, check_submodules=False, **opts):
         try:
             retval = self.repo.run_cmd(cmd, raise_error=True, **opts)
             self.mainWindow.ReloadRepo()
+
+            # Check submodules
+            if check_submodules and self.repo.submodules:
+                for submodule in self.repo.submodules:
+                    if submodule.main_ref != submodule.head:
+                        wx.MessageBox(
+                            "One or more submodule versions differ from the version " +
+                            "that is referenced by the current HEAD. If this is not " +
+                            "what you want, you need to checkout them to the proper version.",
+                            'Warning',
+                            style=wx.OK|wx.ICON_WARNING
+                        )
+                        break
+
             return retval
         except GitError, msg:
             wx.MessageBox(str(msg), 'Error', style=wx.OK|wx.ICON_ERROR)
