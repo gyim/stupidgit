@@ -473,7 +473,7 @@ class CommitWizard(Wizard.Wizard):
                         msg = wx.MessageDialog(
                             self,
                             msg,
-                            "Git error",
+                            "Error",
                             wx.ICON_ERROR | wx.OK
                         )
                         

@@ -132,6 +132,10 @@ class MainWindow(wx.Frame):
         self.historyTab.SetRepo(repo)
         self.indexTab.SetRepo(repo)
 
+    def ReloadRepo(self):
+        self.currentRepo.load_refs()
+        self.SetRepo(self.currentRepo)
+
     def OnModuleChosen(self, e):
         module_name = e.GetString()
         module = [m for m in self.mainRepo.all_modules if m.name == module_name]

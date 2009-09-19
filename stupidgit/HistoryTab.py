@@ -77,12 +77,7 @@ class HistoryTab(wx.Panel):
         dialog = wx.TextEntryDialog(self, "Enter branch name:", "Create branch...")
         if dialog.ShowModal() == wx.ID_OK:
             branch_name = dialog.GetValue()
-            try:
-                s = self.repo.run_cmd(['branch', branch_name, self.contextCommit.sha1], raise_error=True)
-                self.repo.load_refs()
-                self.SetRepo(self.repo)
-            except GitError, msg:
-                wx.MessageBox(str(msg), 'Error', style=wx.OK|wx.ICON_ERROR)
+            self.GitCommand(['branch', branch_name, self.contextCommit.sha1])
 
     def OnDeleteBranch(self, e):
         branch = branch_indexes[e.GetId() % 1000]
@@ -93,12 +88,7 @@ class HistoryTab(wx.Panel):
             wx.ICON_EXCLAMATION | wx.YES_NO | wx.YES_DEFAULT
         )
         if msg.ShowModal() == wx.ID_YES:
-            try:
-                self.repo.run_cmd(['branch', '-d', branch], raise_error=True)
-                self.repo.load_refs()
-                self.SetRepo(self.repo)
-            except GitError, msg:
-                wx.MessageBox(str(msg), 'Error', style=wx.OK|wx.ICON_ERROR)
+            self.GitCommand(['branch', '-d', branch])
 
     def OnCheckout(self, e):
         if e.GetId() == MENU_CHECKOUT_DETACHED:
@@ -116,24 +106,14 @@ class HistoryTab(wx.Panel):
             wx.ICON_EXCLAMATION | wx.YES_NO | wx.YES_DEFAULT
         )
         if msg.ShowModal() == wx.ID_YES:
-            try:
-                self.repo.run_cmd(['checkout', checkout_target], raise_error=True)
-                self.repo.load_refs()
-                self.SetRepo(self.repo)
-            except GitError, msg:
-                wx.MessageBox(str(msg), 'Error', style=wx.OK|wx.ICON_ERROR)
+            self.GitCommand(['checkout', checkout_target])
 
     def OnResetBranch(self, e):
         wizard = ResetWizard(self.mainWindow, -1, self.repo)
         if wizard.RunWizard():
             resetTypes = ['--soft', '--mixed', '--hard']
             resetType = resetTypes[wizard.resetType]
-            try:
-                self.repo.run_cmd(['reset', resetType, self.contextCommit.sha1], raise_error=True)
-                self.repo.load_refs()
-                self.mainWindow.SetRepo(self.repo)
-            except GitError, msg:
-                wx.MessageBox(str(msg), 'Error', style=wx.OK|wx.ICON_ERROR)
+            self.GitCommand(['reset', resetType, self.contextCommit.sha1])
 
     def SetupContextMenu(self, commit):
         branches = self.repo.branches_by_sha1.get(commit.sha1, [])
@@ -167,6 +147,14 @@ class HistoryTab(wx.Panel):
             self.contextMenu.AppendSeparator()
             self.contextMenu.Append(MENU_RESET_BRANCH, "Reset branch '%s' here" % self.repo.current_branch)
 
+    def GitCommand(self, cmd, **opts):
+        try:
+            retval = self.repo.run_cmd(cmd, raise_error=True, **opts)
+            self.mainWindow.ReloadRepo()
+            return retval
+        except GitError, msg:
+            wx.MessageBox(str(msg), 'Error', style=wx.OK|wx.ICON_ERROR)
+            return False
 
 class ResetWizard(Wizard):
     def __init__(self, parent, id, repo):
