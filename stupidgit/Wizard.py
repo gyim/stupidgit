@@ -61,7 +61,7 @@ class Wizard(wx.Dialog):
 
     def RunWizard(self):
         self.OnStart()
-        self.ShowModal()
+        return self.ShowModal()
 
     def EndWizard(self, retval):
         self.EndModal(retval)

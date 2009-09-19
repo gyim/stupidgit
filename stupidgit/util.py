@@ -26,3 +26,14 @@ def safe_unicode(s):
 def utf8_str(s):
     s = safe_unicode(s)
     return s.encode('UTF-8')
+
+def invert_hash(h):
+    ih = {}
+
+    for key,value in h.iteritems():
+        if value not in ih:
+            ih[value] = []
+        ih[value].append(key)
+
+    return ih
+

@@ -73,10 +73,10 @@ def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False,
     # Return command output in a form given by arguments
     ret = []
 
-    if with_retcode:
-        if p.returncode != 0 and raise_error:
-            raise GitError, 'git returned with the following error:\n%s' % stderr
+    if p.returncode != 0 and raise_error:
+        raise GitError, 'git returned with the following error:\n%s' % stderr
 
+    if with_retcode:
         ret.append(p.returncode)
 
     ret.append(stdout)
@@ -165,6 +165,11 @@ class Repository(object):
                     self.tags[tagname] = self.run_cmd(['rev-parse', '%s^{commit}' % refname], raise_error=True).strip()
                 except GitError:
                     pass
+
+        # Inverse reference hashes
+        self.branches_by_sha1 = invert_hash(self.branches)
+        self.remote_branches_by_sha1 = invert_hash(self.remote_branches)
+        self.tags_by_sha1 = invert_hash(self.tags)
 
     def run_cmd(self, args, **opts):
         return run_cmd(self.dir, args, **opts)

@@ -389,6 +389,7 @@ class CommitList(wx.ScrolledWindow):
         event = CommitListEvent(EVT_COMMITLIST_RIGHTCLICK_type, self.GetId())
         event.SetCurrentRow(row)
         event.SetSelection(self.selection)
+        event.SetCoords( (e.GetX(), e.GetY()) )
         self.ProcessEvent(event)
         self.OnRightButtonClicked(row, self.selection)
 
@@ -477,6 +478,7 @@ class CommitListEvent(wx.PyCommandEvent):
         wx.PyCommandEvent.__init__(self, eventType, id)
         self.selection = None
         self.currentRow = None
+        self.coords = (None, None)
 
     def GetCurrentRow(self):
         return self.currentRow
@@ -489,6 +491,12 @@ class CommitListEvent(wx.PyCommandEvent):
 
     def SetSelection(self, selection):
         self.selection = selection
+
+    def SetCoords(self, coords):
+        self.coords = coords
+
+    def GetCoords(self):
+        return self.coords
 
 NODE_NORMAL   = 0
 NODE_BRANCH   = 1
