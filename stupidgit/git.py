@@ -5,6 +5,17 @@ import subprocess
 import re
 from util import *
 
+FILE_ADDED       = 'A'
+FILE_MODIFIED    = 'M'
+FILE_DELETED     = 'D'
+FILE_COPIED      = 'C'
+FILE_RENAMED     = 'R'
+FILE_UNMERGED    = 'U'
+FILE_TYPECHANGED = 'T'
+FILE_UNTRACKED   = 'N'
+FILE_BROKEN      = 'B'
+FILE_UNKNOWN     = 'X'
+
 _git = None
 commit_pool = {}
 
@@ -284,6 +295,31 @@ class Repository(object):
                 os.unlink(os.path.join(self.dir, '.git', 'ORIG_HEAD'))
             except OSError:
                 pass
+
+    def get_status(self):
+        unstaged_changes = {}
+        staged_changes = {}
+
+        # Unstaged changes
+        changes = self.run_cmd(['diff', '--name-status', '-z']).split('\x00')
+        for i in xrange(len(changes)/2):
+            status, filename = changes[2*i], changes[2*i+1]
+            if filename not in unstaged_changes or status == FILE_UNMERGED:
+                unstaged_changes[filename] = status
+
+        # Untracked files
+        for filename in self.run_cmd(['ls-files', '--others', '--exclude-standard', '-z']).split('\x00'):
+            if filename and filename not in unstaged_changes:
+                unstaged_changes[filename] = FILE_UNTRACKED
+
+        # Staged changes
+        changes = self.run_cmd(['diff', '--cached', '--name-status', '-z']).split('\x00')
+        for i in xrange(len(changes)/2):
+            status, filename = changes[2*i], changes[2*i+1]
+            if status != FILE_UNMERGED or filename not in unstaged_changes:
+                staged_changes[filename] = status
+
+        return unstaged_changes, staged_changes
 
 class Commit(object):
     def __init__(self, repo):

@@ -7,19 +7,8 @@ import sys
 
 import Wizard
 from DiffViewer import DiffViewer
-from git import GitError
+from git import *
 from util import *
-
-FILE_ADDED       = 'A'
-FILE_MODIFIED    = 'M'
-FILE_DELETED     = 'D'
-FILE_COPIED      = 'C'
-FILE_RENAMED     = 'R'
-FILE_UNMERGED    = 'U'
-FILE_TYPECHANGED = 'T'
-FILE_UNTRACKED   = 'N'
-FILE_BROKEN      = 'B'
-FILE_UNKNOWN     = 'X'
 
 MOD_DESCS = {
     FILE_ADDED       : 'added',
@@ -228,21 +217,26 @@ class IndexTab(wx.Panel):
 
     def SetRepo(self, repo):
         self.repo = repo
+        unstagedDict, stagedDict = self.repo.get_status()
 
         # Unstaged changes
-        self.unstagedChanges = self._parse_diff_output(['diff-files', '-z'])
-        self.untrackedFiles = self.repo.run_cmd(['ls-files', '--others', '--exclude-standard', '-z']).split('\x00')
-        for f in self.untrackedFiles:
-            if f: self.unstagedChanges.append((f, FILE_UNTRACKED))
+        unstagedFiles = unstagedDict.keys()
+        unstagedFiles.sort()
+        self.unstagedChanges = [ (f,unstagedDict[f]) for f in unstagedFiles ]
 
         self.unstagedList.Clear()
         self.unstagedList.InsertItems( ['%s (%s)' % (c[0], MOD_DESCS[c[1]]) for c in self.unstagedChanges], 0 )
 
-        # Staged changes
-        self.stagedChanges = self._parse_diff_output(['diff-index', '--cached', '-z', 'HEAD'])
+        # Unstaged changes
+        stagedFiles = stagedDict.keys()
+        stagedFiles.sort()
+        self.stagedChanges = [ (f,stagedDict[f]) for f in stagedFiles ]
 
         self.stagedList.Clear()
         self.stagedList.InsertItems( ['%s (%s)' % (c[0], MOD_DESCS[c[1]]) for c in self.stagedChanges], 0 )
+
+        # Untracked files
+        self.untrackedFiles = [ f for f in unstagedDict if unstagedDict[f] == FILE_UNTRACKED ]
 
     def Refresh(self):
         self.SetRepo(self.repo)
@@ -365,9 +359,8 @@ class CommitWizard(Wizard.Wizard):
         # Check whether submodules have changes
         self.hasSubmoduleChanges = False
         for module in self.repo.submodules:
-            diffs = module.run_cmd(['diff', 'HEAD'])
-            new_files = module.run_cmd(['ls-files', '--others', '--exclude-standard'])
-            if len(diffs.strip()) > 0 or len(new_files.strip()) > 0:
+            unstagedChanges, stagedChanges = module.get_status()
+            if unstagedChanges or stagedChanges:
                 self.hasSubmoduleChanges = True
                 break
 
