@@ -137,8 +137,9 @@ class HistoryTab(wx.Panel):
         # Checkout
         self.contextMenu.AppendSeparator()
         if branches:
-            menu_id = MENU_CHECKOUT_BRANCH + branch_indexes.index(branch)
-            self.contextMenu.Append(menu_id, "Checkout branch '%s'" % branch)
+            for branch in branches:
+                menu_id = MENU_CHECKOUT_BRANCH + branch_indexes.index(branch)
+                self.contextMenu.Append(menu_id, "Checkout branch '%s'" % branch)
 
         self.contextMenu.Append(MENU_CHECKOUT_DETACHED, "Checkout as detached HEAD")
 
