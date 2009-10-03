@@ -38,17 +38,26 @@ class IndexTab(wx.Panel):
         self.mainWindow = mainWindow
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
+        
+        # Splitter
+        self.splitter = wx.SplitterWindow(self, -1, style=wx.SP_LIVE_UPDATE)
+        self.sizer.Add(self.splitter, True, wx.EXPAND, wx.ALL)
+
+        # Top panel
+        self.topPanel = wx.Panel(self.splitter, -1)
+        self.topSizer = wx.BoxSizer(wx.VERTICAL)
+        self.topPanel.SetSizer(self.topSizer)
 
         # --- File lists ---
         self.listRow = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer.Add(self.listRow, 0, wx.EXPAND)
+        self.topSizer.Add(self.listRow, 1, wx.EXPAND)
 
         # Unstaged changes
-        self.unstagedBox = wx.StaticBox(self, -1, "Unstaged changes")
+        self.unstagedBox = wx.StaticBox(self.topPanel, -1, "Unstaged changes")
         self.unstagedBoxSizer = wx.StaticBoxSizer(self.unstagedBox, wx.VERTICAL)
         self.listRow.Add(self.unstagedBoxSizer, 1, wx.EXPAND | wx.RIGHT, 10)
 
-        self.unstagedList = wx.ListBox(self, -1, style=wx.LB_EXTENDED)
+        self.unstagedList = wx.ListBox(self.topPanel, -1, style=wx.LB_EXTENDED)
         self.unstagedBoxSizer.Add(self.unstagedList, 1, wx.EXPAND|wx.ALL, 0)
         self.Bind(wx.EVT_LISTBOX, self.OnUnstagedListSelect, self.unstagedList)
 
@@ -56,9 +65,9 @@ class IndexTab(wx.Panel):
         self.actionButtons = wx.BoxSizer(wx.VERTICAL)
         self.listRow.Add(self.actionButtons, 0, wx.BOTTOM, 5)
 
-        self.stageButton = wx.Button(self, -1, LABEL_STAGE)
-        self.unstageButton = wx.Button(self, -1, LABEL_UNSTAGE)
-        self.discardButton = wx.Button(self, -1, LABEL_DISCARD)
+        self.stageButton = wx.Button(self.topPanel, -1, LABEL_STAGE)
+        self.unstageButton = wx.Button(self.topPanel, -1, LABEL_UNSTAGE)
+        self.discardButton = wx.Button(self.topPanel, -1, LABEL_DISCARD)
 
         self.Bind(wx.EVT_BUTTON, self.OnStage, self.stageButton)
         self.Bind(wx.EVT_BUTTON, self.OnUnstage, self.unstageButton)
@@ -69,30 +78,39 @@ class IndexTab(wx.Panel):
         self.actionButtons.Add(self.discardButton, 0, wx.EXPAND | wx.TOP, 20)
 
         # Staged changes
-        self.stagedBox = wx.StaticBox(self, -1, "Staged changes")
+        self.stagedBox = wx.StaticBox(self.topPanel, -1, "Staged changes")
         self.stagedBoxSizer = wx.StaticBoxSizer(self.stagedBox, wx.VERTICAL)
         self.listRow.Add(self.stagedBoxSizer, 1, wx.EXPAND | wx.LEFT, 10)
 
-        self.stagedList = wx.ListBox(self, -1, style=wx.LB_EXTENDED)
+        self.stagedList = wx.ListBox(self.topPanel, -1, style=wx.LB_EXTENDED)
         self.stagedBoxSizer.Add(self.stagedList, 1, wx.EXPAND|wx.ALL, 0)
         self.Bind(wx.EVT_LISTBOX, self.OnStagedListSelect, self.stagedList)
 
+        # Bottom panel
+        self.bottomPanel = wx.Panel(self.splitter, -1)
+        self.bottomSizer = wx.BoxSizer(wx.VERTICAL)
+        self.bottomPanel.SetSizer(self.bottomSizer)
+
         # Diff viewer
-        self.diffViewer = DiffViewer(self, -1)
-        self.sizer.Add(self.diffViewer, 2, wx.EXPAND)
+        self.diffViewer = DiffViewer(self.bottomPanel, -1)
+        self.bottomSizer.Add(self.diffViewer, 1, wx.EXPAND)
 
         # Commit / discard buttons
         self.bottomButtons = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer.Add(self.bottomButtons, 0, wx.TOP | wx.BOTTOM, 5)
+        self.bottomSizer.Add(self.bottomButtons, 0, wx.TOP | wx.BOTTOM, 5)
 
-        self.commitButton = wx.Button(self, -1, "Commit staged changes")
-        self.resetButton = wx.Button(self, -1, "Discard all changes")
+        self.commitButton = wx.Button(self.bottomPanel, -1, "Commit staged changes")
+        self.resetButton = wx.Button(self.bottomPanel, -1, "Discard all changes")
 
         self.Bind(wx.EVT_BUTTON, self.OnCommit, self.commitButton)
         self.Bind(wx.EVT_BUTTON, self.OnReset, self.resetButton)
 
         self.bottomButtons.Add(self.commitButton, 0, wx.LEFT, 5)
         self.bottomButtons.Add(self.resetButton, 0, wx.LEFT, 5)
+
+        # Split window
+        self.splitter.SetMinimumPaneSize(120)
+        self.splitter.SplitHorizontally(self.topPanel, self.bottomPanel, 200)
 
     def OnStage(self, e):
         for row in self.unstagedList.GetSelections():

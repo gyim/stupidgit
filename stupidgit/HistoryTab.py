@@ -28,7 +28,7 @@ class HistoryTab(wx.Panel):
         self.SetSizer(self.sizer)
 
         # Splitter
-        self.splitter = wx.SplitterWindow(self, -1)
+        self.splitter = wx.SplitterWindow(self, -1, style=wx.SP_LIVE_UPDATE)
         self.sizer.Add(self.splitter, True, wx.EXPAND, wx.ALL)
 
         # History graph
