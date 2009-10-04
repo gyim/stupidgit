@@ -2,6 +2,7 @@
 
 import wx
 import wx.html
+from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin, ListCtrlSelectionManagerMix
 import os
 import sys
 
@@ -32,6 +33,17 @@ else:
     LABEL_UNSTAGE = u"⇐ Unstage"
     LABEL_DISCARD = u"× Discard"
 
+class FileList(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlSelectionManagerMix):
+    def __init__(self, parent, ID, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.LC_REPORT | wx.LC_NO_HEADER):
+        wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
+        ListCtrlAutoWidthMixin.__init__(self)
+        ListCtrlSelectionManagerMix.__init__(self)
+
+        self.InsertColumn(0, "File")
+
+    def GetSelections(self):
+        return [ i for i in xrange(self.GetItemCount()) if self.GetItemState(i, wx.LIST_STATE_SELECTED) == wx.LIST_STATE_SELECTED ]
+
 class IndexTab(wx.Panel):
     def __init__(self, mainWindow, parent, id):
         wx.Panel.__init__(self, parent, id)
@@ -57,9 +69,9 @@ class IndexTab(wx.Panel):
         self.unstagedBoxSizer = wx.StaticBoxSizer(self.unstagedBox, wx.VERTICAL)
         self.listRow.Add(self.unstagedBoxSizer, 1, wx.EXPAND | wx.RIGHT, 10)
 
-        self.unstagedList = wx.ListBox(self.topPanel, -1, style=wx.LB_EXTENDED)
+        self.unstagedList = FileList(self.topPanel, -1)
         self.unstagedBoxSizer.Add(self.unstagedList, 1, wx.EXPAND|wx.ALL, 0)
-        self.Bind(wx.EVT_LISTBOX, self.OnUnstagedListSelect, self.unstagedList)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnUnstagedListSelect, self.unstagedList)
 
         # Stage/unstage/discard buttons
         self.actionButtons = wx.BoxSizer(wx.VERTICAL)
@@ -82,9 +94,9 @@ class IndexTab(wx.Panel):
         self.stagedBoxSizer = wx.StaticBoxSizer(self.stagedBox, wx.VERTICAL)
         self.listRow.Add(self.stagedBoxSizer, 1, wx.EXPAND | wx.LEFT, 10)
 
-        self.stagedList = wx.ListBox(self.topPanel, -1, style=wx.LB_EXTENDED)
+        self.stagedList = FileList(self.topPanel, -1)
         self.stagedBoxSizer.Add(self.stagedList, 1, wx.EXPAND|wx.ALL, 0)
-        self.Bind(wx.EVT_LISTBOX, self.OnStagedListSelect, self.stagedList)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnStagedListSelect, self.stagedList)
 
         # Bottom panel
         self.bottomPanel = wx.Panel(self.splitter, -1)
@@ -156,11 +168,10 @@ class IndexTab(wx.Panel):
     def OnUnstagedListSelect(self, e):
         # Clear selection in stagedList
         for row in self.stagedList.GetSelections():
-            self.stagedList.Deselect(row)
+            self.stagedList.SetItemState(row, 0, wx.LIST_STATE_SELECTED)
 
         # Show diffs
-        selection = list(self.unstagedList.GetSelections())
-        selection.sort()
+        selection = self.unstagedList.GetSelections()
 
         diff_text = ''
         for row in selection:
@@ -199,11 +210,10 @@ class IndexTab(wx.Panel):
     def OnStagedListSelect(self, e):
         # Clear selection in unstagedList
         for row in self.unstagedList.GetSelections():
-            self.unstagedList.Deselect(row)
+            self.unstagedList.SetItemState(row, 0, wx.LIST_STATE_SELECTED)
 
         # Show diffs
-        selection = list(self.stagedList.GetSelections())
-        selection.sort()
+        selection = self.stagedList.GetSelections()
 
         diff_text = ''
         for row in selection:
@@ -242,16 +252,20 @@ class IndexTab(wx.Panel):
         unstagedFiles.sort()
         self.unstagedChanges = [ (f,unstagedDict[f]) for f in unstagedFiles ]
 
-        self.unstagedList.Clear()
-        self.unstagedList.InsertItems( ['%s (%s)' % (c[0], MOD_DESCS[c[1]]) for c in self.unstagedChanges], 0 )
+        self.unstagedList.DeleteAllItems()
+        for c in self.unstagedChanges:
+            pos = self.unstagedList.GetItemCount()
+            self.unstagedList.InsertStringItem(pos, '%s (%s)' % (c[0], MOD_DESCS[c[1]]))
 
         # Unstaged changes
         stagedFiles = stagedDict.keys()
         stagedFiles.sort()
         self.stagedChanges = [ (f,stagedDict[f]) for f in stagedFiles ]
 
-        self.stagedList.Clear()
-        self.stagedList.InsertItems( ['%s (%s)' % (c[0], MOD_DESCS[c[1]]) for c in self.stagedChanges], 0 )
+        self.stagedList.DeleteAllItems()
+        for c in self.stagedChanges:
+            pos = self.stagedList.GetItemCount()
+            self.stagedList.InsertStringItem(pos, '%s (%s)' % (c[0], MOD_DESCS[c[1]]))
 
         # Untracked files
         self.untrackedFiles = [ f for f in unstagedDict if unstagedDict[f] == FILE_UNTRACKED ]
