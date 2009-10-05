@@ -1,4 +1,7 @@
 import locale
+import sys
+import os
+import os.path
 
 def safe_unicode(s):
     '''Creates unicode object from string s.
@@ -36,4 +39,17 @@ def invert_hash(h):
         ih[value].append(key)
 
     return ih
+
+def find_binary(locations):
+    searchpath_sep = ';' if sys.platform == 'win32' else ':'
+    searchpaths = os.environ['PATH'].split(searchpath_sep)
+
+    for location in locations:
+        if '{PATH}' in location:
+            for searchpath in searchpaths:
+                s = location.replace('{PATH}', searchpath)
+                if os.path.isfile(s) and os.access(s, os.X_OK):
+                    yield s
+        elif os.path.isfile(location) and os.access(location, os.X_OK):
+            yield location
 

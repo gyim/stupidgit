@@ -33,6 +33,8 @@ else:
     LABEL_UNSTAGE = u"⇐ Unstage"
     LABEL_DISCARD = u"× Discard"
 
+MENU_MERGE_FILE     = 20000
+
 class FileList(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlSelectionManagerMix):
     def __init__(self, parent, ID, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.LC_REPORT | wx.LC_NO_HEADER):
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
@@ -72,6 +74,11 @@ class IndexTab(wx.Panel):
         self.unstagedList = FileList(self.topPanel, -1)
         self.unstagedBoxSizer.Add(self.unstagedList, 1, wx.EXPAND|wx.ALL, 0)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnUnstagedListSelect, self.unstagedList)
+        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnUnstagedRightClick, self.unstagedList)
+
+        self.unstagedMenu = wx.Menu()
+        self.unstagedMenu.Append(MENU_MERGE_FILE, "Merge file")
+        wx.EVT_MENU(self, MENU_MERGE_FILE, self.OnMergeFile)
 
         # Stage/unstage/discard buttons
         self.actionButtons = wx.BoxSizer(wx.VERTICAL)
@@ -221,6 +228,11 @@ class IndexTab(wx.Panel):
 
         self.diffViewer.SetDiffText(diff_text)
 
+    def OnUnstagedRightClick(self, e):
+        id = self.selectedUnstagedItem = e.GetIndex()
+        if self.unstagedChanges[id][1] == FILE_UNMERGED:
+            self.PopupMenu(self.unstagedMenu)
+
     def OnCommit(self, e):
         if len(self.stagedChanges) == 0:
             return
@@ -242,6 +254,9 @@ class IndexTab(wx.Panel):
             self.repo.run_cmd(['clean', '-f'])
 
             self.Refresh()
+
+    def OnMergeFile(self, e):
+        self.repo.merge_file(self.unstagedChanges[self.selectedUnstagedItem][0])
 
     def SetRepo(self, repo):
         self.repo = repo

@@ -3,6 +3,7 @@ import os.path
 import sys
 import subprocess
 import re
+import tempfile
 from util import *
 
 FILE_ADDED       = 'A'
@@ -16,6 +17,29 @@ FILE_UNTRACKED   = 'N'
 FILE_BROKEN      = 'B'
 FILE_UNKNOWN     = 'X'
 
+MERGE_TOOLS = {
+    'diffmerge.app': (
+        ['/Applications/DiffMerge.app/Contents/MacOS/DiffMerge'],
+        ['--nosplash', '-t1={FILENAME}.LOCAL', '-t2={FILENAME}.MERGED', '-t3={FILENAME}.REMOTE', '{LOCAL}', '{MERGED}', '{REMOTE}']
+    ),
+    'diffmerge.cmdline': (
+        ['{PATH}/diffmerge', '{PATH}/diffmerge.sh'],
+        ['--nosplash', '-t1=LOCAL', '-t2=MERGED', '-t3=REMOTE', '{LOCAL}', '{MERGED}', '{REMOTE}']
+    ),
+    'meld': (
+        ['{PATH}/meld'],
+        ['{LOCAL}', '{MERGED}', '{REMOTE}']
+    ),
+    'winmerge.win32': (
+        [r'C:\Program Files\WinMerge\WinMergeU.exe'],
+        ['{MERGED}'] # It does not support 3-way merge yet...
+    ),
+    'winmerge.cygwin': (
+        ['/c/Program Files/WinMerge/WinMergeU.exe'],
+        ['{MERGED}'] # It does not support 3-way merge yet...
+    )
+}
+
 _git = None
 commit_pool = {}
 
@@ -28,24 +52,53 @@ def git_binary():
         return _git
 
     # Search for git binary
-    binary_name = 'git.exe' if sys.platform in ['win32','cygwin'] else 'git'
-    searchpath_sep = ';' if sys.platform == 'win32' else ':'
-    searchpaths = os.environ['PATH'].split(searchpath_sep)
-
     if os.name == 'posix':
-        searchpaths.append('/opt/local/bin') # MacPorts
+        locations = ['{PATH}/git', '/opt/local/bin/git']
     elif sys.platform == 'win32':
-        searchpaths.append(r'C:\Program Files\Git\bin')
+        locations = (r'{PATH}\git.exe', r'C:\Program Files\Git\bin\git.exe')
     elif sys.platform == 'cygwin':
-        searchpaths.append('/c/Program Files/Git/bin')
+        locations = (r'{PATH}/git.exe', r'/c/Program Files/Git/bin/git.exe')
+    else:
+        locations = []
 
-    for dir in searchpaths:
-        _git = os.path.join(dir, binary_name)
-        if os.path.isfile(_git) and os.access(_git, os.X_OK):
-            return _git
+    for _git in find_binary(locations):
+        return _git
 
     _git = None
     raise GitError, "git executable not found"
+
+_mergetool = None
+def detect_mergetool():
+    global _mergetool
+
+    if _mergetool:
+        return _mergetool
+
+    # Select tools
+    if sys.platform == 'darwin':
+        # Mac OS X
+        tools = ['diffmerge.app', 'diffmerge.cmdline', 'meld']
+    elif os.name == 'posix':
+        # Other Unix
+        tools = ['diffmerge.cmdline', 'meld']
+    elif sys.platform == 'win32':
+        # Windows
+        tools = ['winmerge.win32']
+    elif sys.platform == 'cygwin':
+        # Cygwin
+        tools = ['winmerge.cygwin']
+    else:
+        raise GitError, "Cannot detect any merge tool"
+
+    # Detect binaries
+    for tool in tools:
+        locations, args = MERGE_TOOLS[tool]
+        for location in find_binary(locations):
+            _mergetool = (location, args)
+            return _mergetool
+
+    # Return error if no tool was found
+    raise GitError, "Cannot detect any merge tool"
 
 def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False, input=None, env={}):
     # Check args
@@ -320,6 +373,30 @@ class Repository(object):
                 staged_changes[filename] = status
 
         return unstaged_changes, staged_changes
+
+    def merge_file(self, filename):
+        # Store file versions in temporary files
+        _, local_file = tempfile.mkstemp(os.path.basename(filename) + '.LOCAL')
+        f = open(local_file, 'w')
+        f.write(self.run_cmd(['show', ':2:%s' % filename], raise_error=True))
+        f.close()
+
+        _, remote_file = tempfile.mkstemp(os.path.basename(filename) + '.REMOTE')
+        f = open(remote_file, 'w')
+        f.write(self.run_cmd(['show', ':3:%s' % filename], raise_error=True))
+        f.close()
+
+        # Run mergetool
+        mergetool, args = detect_mergetool()
+        args = list(args)
+
+        for i in xrange(len(args)):
+            args[i] = args[i].replace('{FILENAME}', os.path.basename(filename))
+            args[i] = args[i].replace('{LOCAL}', local_file)
+            args[i] = args[i].replace('{REMOTE}', remote_file)
+            args[i] = args[i].replace('{MERGED}', os.path.join(self.dir, filename))
+
+        s = subprocess.Popen([mergetool] + args)
 
 class Commit(object):
     def __init__(self, repo):
