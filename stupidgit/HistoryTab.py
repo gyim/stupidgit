@@ -95,7 +95,7 @@ class HistoryTab(wx.Panel):
             wx.ICON_EXCLAMATION | wx.YES_NO | wx.YES_DEFAULT
         )
         if msg.ShowModal() == wx.ID_YES:
-            self.GitCommand(['branch', '-d', branch])
+            self.GitCommand(['branch', '-D', branch])
 
     def OnCheckout(self, e):
         if e.GetId() == MENU_CHECKOUT_DETACHED:
