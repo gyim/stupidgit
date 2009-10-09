@@ -1,7 +1,10 @@
 import wx
+import os
+import os.path
 from CommitList import CommitList, EVT_COMMITLIST_SELECT, EVT_COMMITLIST_RIGHTCLICK
 from DiffViewer import DiffViewer
 from Wizard import *
+import git
 from git import GitError
 
 # Menu item ids
@@ -13,7 +16,6 @@ MENU_CHERRYPICK_COMMIT  = 10003
 MENU_CREATE_BRANCH      = 11000
 MENU_DELETE_BRANCH      = 12000
 MENU_CHECKOUT_BRANCH    = 13000
-MENU_MERGE_BRANCH       = 14000
 
 # This array is used to provide unique ids for menu items
 # that refer to a branch
@@ -60,7 +62,6 @@ class HistoryTab(wx.Panel):
                 index = len(branch_indexes)-1
                 wx.EVT_MENU(self, MENU_DELETE_BRANCH + index, self.OnDeleteBranch)
                 wx.EVT_MENU(self, MENU_CHECKOUT_BRANCH + index, self.OnCheckout)
-                wx.EVT_MENU(self, MENU_MERGE_BRANCH + index, self.OnMerge)
 
         self.repo = repo
         self.commitList.SetRepo(repo)
@@ -123,26 +124,46 @@ class HistoryTab(wx.Panel):
             self.GitCommand(['reset', resetType, self.contextCommit.sha1], True)
 
     def OnMerge(self, e):
-        if e.GetId() == MENU_MERGE_COMMIT:
-            merge_target = self.contextCommit.sha1
-            confirmMsg = "Do you really want to merge this commit into current HEAD?"
+        # Default merge message
+        if self.repo.current_branch:
+            local_branch = self.repo.current_branch
         else:
-            branch = branch_indexes[e.GetId() % 1000]
-            merge_target = branch
-            confirmMsg = "Do you really want to merge branch '%s' into current HEAD?" % branch
+            local_branch = "HEAD"
 
-        msg = wx.MessageDialog(
+        remote_sha1 = self.contextCommit.sha1
+        if remote_sha1 in self.repo.branches_by_sha1:
+            remote_branch = "branch '%s'" % self.repo.branches_by_sha1[remote_sha1][0]
+        elif remote_sha1 in self.repo.remote_branches_by_sha1:
+            remote_branch = "remote branch '%s'" % self.repo.remote_branches_by_sha1[remote_sha1][0]
+        else:
+            remote_branch = "commit '%s'" % self.contextCommit.abbrev
+
+        mergeMsg = "merge %s into %s" % (remote_branch, local_branch)
+
+        # Show merge message dialog
+        msg = wx.TextEntryDialog(
             self.mainWindow,
-            confirmMsg,
-            "Confirmation",
-            wx.ICON_EXCLAMATION | wx.YES_NO | wx.YES_DEFAULT
+            "Enter merge message:",
+            "Merge",
+            mergeMsg,
+            wx.ICON_QUESTION | wx.OK | wx.CANCEL
         )
-        if msg.ShowModal() == wx.ID_YES:
-            retcode, stdout, stderr = self.repo.run_cmd(['merge', merge_target], with_retcode=True, with_stderr=True)
+        if msg.ShowModal() == wx.ID_OK:
+            retcode, stdout, stderr = self.repo.run_cmd(['merge', self.contextCommit.sha1, '-m', mergeMsg], with_retcode=True, with_stderr=True)
             self.mainWindow.ReloadRepo()
 
             if retcode != 0:
                 if 'CONFLICT' in stdout:
+                    # Create MERGE_MSG
+                    f = open(os.path.join(self.repo.dir, '.git', 'MERGE_MSG'), 'w')
+                    f.write("%s\n\nConflicts:\n" % mergeMsg)
+                    unstaged, staged = self.repo.get_status()
+                    unmerged_files = [ fn for fn,status in unstaged.iteritems() if status == git.FILE_UNMERGED ]
+                    for fn in unmerged_files:
+                        f.write("\t%s\n" % fn)
+                    f.close()
+
+                    # Show warning
                     warningTitle = "Warning: conflicts during merge"
                     warningMsg = \
                         "Some files or submodules could not be automatically merged. " + \
@@ -216,15 +237,9 @@ class HistoryTab(wx.Panel):
 
         # Merge
         self.contextMenu.AppendSeparator()
-        if branches:
-            for branch in branches:
-                menu_id = MENU_MERGE_BRANCH + branch_indexes.index(branch)
-                self.contextMenu.Append(menu_id, "Merge branch '%s' into current HEAD" % branch)
-        else:
-            self.contextMenu.Append(MENU_MERGE_COMMIT, "Merge into current HEAD")
+        self.contextMenu.Append(MENU_MERGE_COMMIT, "Merge into current HEAD")
 
         # Cherry-pick
-        self.contextMenu.AppendSeparator()
         self.contextMenu.Append(MENU_CHERRYPICK_COMMIT, "Cherry-pick this commit")
 
     def GitCommand(self, cmd, check_submodules=False, **opts):
