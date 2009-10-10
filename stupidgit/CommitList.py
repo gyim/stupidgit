@@ -346,6 +346,9 @@ class CommitList(wx.ScrolledWindow):
         dc.EndDrawing()
 
     def OnLeftClick(self, e):
+        e.StopPropagation()
+        self.SetFocus()
+
         # Determine row number
         x, y = self.CalcUnscrolledPosition(*(e.GetPosition()))
         row = self.RowNumberByCoords(x, y)
@@ -379,6 +382,9 @@ class CommitList(wx.ScrolledWindow):
         self.Refresh()
 
     def OnRightClick(self, e):
+        e.StopPropagation()
+        self.SetFocus()
+
         # Determine row number
         x, y = self.CalcUnscrolledPosition(*(e.GetPosition()))
         row = self.RowNumberByCoords(x, y)
