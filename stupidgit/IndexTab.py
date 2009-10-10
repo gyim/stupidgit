@@ -414,6 +414,25 @@ class CommitWizard(Wizard.Wizard):
         # Check whether HEAD is detached
         self.isDetachedHead = (self.repo.current_branch == None)
 
+        # Get default commit message from MERGE_MSG
+        mergemsg_file = os.path.join(self.repo.dir, '.git', 'MERGE_MSG')
+        if os.path.exists(mergemsg_file):
+            # Short msg
+            f = open(mergemsg_file)
+            self.currentShortMsg = safe_unicode(f.readline())
+
+            # Details
+            self.currentDetails = u''
+            sep = f.readline()
+            if sep.strip():
+                self.currentDetails += safe_unicode(sep)
+            self.currentDetails += safe_unicode(f.read())
+            f.close()
+
+            # Write into text fields
+            self.shortmsgEntry.SetValue(self.currentShortMsg)
+            self.detailsEntry.SetValue(self.currentDetails)
+
         # Get author info
         self.authorName  = self.repo.run_cmd(['config', 'user.name']).strip()
         self.authorEmail = self.repo.run_cmd(['config', 'user.email']).strip()
