@@ -50,10 +50,10 @@ class HistoryTab(wx.Panel):
             if branch not in branch_indexes:
                 branch_indexes.append(branch)
 
-                # Menu events
-                index = len(branch_indexes)-1
-                wx.EVT_MENU(self, MENU_DELETE_BRANCH + index, self.OnDeleteBranch)
-                wx.EVT_MENU(self, MENU_CHECKOUT_BRANCH + index, self.OnCheckout)
+        # Menu events for branches
+        for index in xrange(len(branch_indexes)):
+            wx.EVT_MENU(self, MENU_DELETE_BRANCH + index, self.OnDeleteBranch)
+            wx.EVT_MENU(self, MENU_CHECKOUT_BRANCH + index, self.OnCheckout)
 
         self.repo = repo
         self.commitList.SetRepo(repo)
