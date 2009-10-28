@@ -230,7 +230,10 @@ class IndexTab(wx.Panel):
 
     def OnUnstagedRightClick(self, e):
         id = self.selectedUnstagedItem = e.GetIndex()
-        if self.unstagedChanges[id][1] == FILE_UNMERGED:
+        filename, modification = self.unstagedChanges[id]
+        submodule_names = [ r.name for r in self.repo.submodules ]
+
+        if modification == FILE_UNMERGED and filename not in submodule_names:
             self.PopupMenu(self.unstagedMenu)
 
     def OnCommit(self, e):

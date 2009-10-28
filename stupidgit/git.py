@@ -207,11 +207,16 @@ class Repository(object):
         except OSError:
             pass
 
-        # Main module reference
+        # Main module references
         if self.parent:
             self.main_ref = self.parent.get_submodule_version(self.name, 'HEAD')
+            if os.path.exists(os.path.join(self.parent.dir, '.git', 'MERGE_HEAD')):
+                self.main_merge_ref = self.parent.get_submodule_version(self.name, 'MERGE_HEAD')
+            else:
+                self.main_merge_ref = None
         else:
             self.main_ref = None
+            self.main_merge_ref = None
 
         # References
         for line in self.run_cmd(['show-ref']).split('\n'):

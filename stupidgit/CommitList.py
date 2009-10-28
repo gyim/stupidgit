@@ -169,7 +169,9 @@ class CommitList(wx.ScrolledWindow):
             self._add_reference(self.repo.head, 'DETACHED HEAD', REF_DETACHEDHEAD)
 
         if self.repo.main_ref:
-            self._add_reference(self.repo.main_ref, 'MAIN', REF_MODULE)
+            self._add_reference(self.repo.main_ref, 'MAIN/HEAD', REF_MODULE)
+        if self.repo.main_merge_ref:
+            self._add_reference(self.repo.main_merge_ref, 'MAIN/MERGE_HEAD', REF_MODULE)
 
         for branch,commit_id in self.repo.branches.iteritems():
             if branch != self.repo.current_branch:
