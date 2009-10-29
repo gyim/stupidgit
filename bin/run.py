@@ -7,13 +7,17 @@ import os.path
 import wx
 
 # Add module path .. if ../stupidgit exists
-curfile = __file__
-if os.path.islink(curfile):
-    curfile = os.path.abspath(os.readlink(curfile))
-curdir = os.path.dirname(curfile)
-moduledir = os.path.abspath(os.path.join(curdir, '..', 'stupidgit'))
-if os.path.isdir(moduledir):
-    sys.path.insert(0, os.path.dirname(moduledir))
+try:
+    curfile = __file__
+    if os.path.islink(curfile):
+        curfile = os.path.abspath(os.readlink(curfile))
+    curdir = os.path.dirname(curfile)
+    moduledir = os.path.abspath(os.path.join(curdir, '..', 'stupidgit'))
+    if os.path.isdir(moduledir):
+        sys.path.insert(0, os.path.dirname(moduledir))
+except NameError:
+    # we are in py2exe (no __file__)
+    pass
 
 # Load stupidgit module
 from stupidgit import *

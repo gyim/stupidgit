@@ -2,6 +2,7 @@ import locale
 import sys
 import os
 import os.path
+import subprocess
 
 def safe_unicode(s):
     '''Creates unicode object from string s.
@@ -52,4 +53,11 @@ def find_binary(locations):
                     yield s
         elif os.path.isfile(location) and os.access(location, os.X_OK):
             yield location
+
+CREATE_NO_WINDOW = 0x08000000
+def Popen(cmd, **args):
+    if sys.platform == 'win32':
+        return subprocess.Popen(cmd, creationflags = CREATE_NO_WINDOW, **args)
+    else:
+        return subprocess.Popen(cmd, **args)
 

@@ -118,19 +118,15 @@ def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False,
     if type(args) != list:
         args = [args]
 
-    if input == None:
-        s = None
-    else:
-        s = subprocess.PIPE
-
     git_env = dict(os.environ)
     git_env.update(env)
 
-    p = subprocess.Popen([git_binary()] + args, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, stdin=s, env=git_env)
+    p = Popen([git_binary()] + args, stdout=subprocess.PIPE,
+              stderr=subprocess.PIPE, stdin=subprocess.PIPE,
+              env=git_env, shell=False)
 
     if input == None:
-        stdout,stderr = p.communicate()
+        stdout,stderr = p.communicate('')
     else:
         stdout,stderr = p.communicate(utf8_str(input))
     
@@ -401,7 +397,7 @@ class Repository(object):
             args[i] = args[i].replace('{REMOTE}', remote_file)
             args[i] = args[i].replace('{MERGED}', os.path.join(self.dir, filename))
 
-        s = subprocess.Popen([mergetool] + args)
+        s = Popen([mergetool] + args, shell=False)
 
 class Commit(object):
     def __init__(self, repo):
@@ -510,5 +506,4 @@ class ConfigFile(object):
             return opts.get(option)
         else:
             return None
-
 

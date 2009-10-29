@@ -1,2 +1,7 @@
+.DS_Store
+dist/*
+build/*
+stupidgit.egg-info
+MANIFEST
 *.swp
 *.pyc
