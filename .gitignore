@@ -1,7 +1,7 @@
 .DS_Store
 dist/*
 build/*
-stupidgit.egg-info
+StupidGit.egg-info
 MANIFEST
 *.swp
 *.pyc

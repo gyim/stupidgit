@@ -10,12 +10,10 @@ Usage (Windows):
 import sys
 from setuptools import setup
 
-mainscript = 'bin/run.py'
-
 if sys.platform == 'darwin':
     extra_options = dict(
         setup_requires=['py2app'],
-        app=[mainscript],
+        app=['stupidgit_gui/run.py'],
         # Cross-platform applications generally expect sys.argv to
         # be used for opening files.
         options=dict(
@@ -30,22 +28,22 @@ elif sys.platform == 'win32':
     import py2exe
     extra_options = dict(
         setup_requires=['py2exe'],
-        windows=[mainscript],
+        windows=[{
+            'script': 'bin/stupidgit',
+            'dest_base': 'stupidgit'
+        }],
     )
 else:
-     extra_options = dict(
-         # Normally unix-like platforms will use "setup.py install"
-         # and install the main script as such
-         scripts=[mainscript],
-     )
+    extra_options=dict()
 
 setup(
-    name='stupidgit',
+    name='StupidGit',
     version='0.1',
     description='A cross-platform git GUI with strong support for submodules',
     author='Akos Gyimesi',
     author_email='gyimesi.akos@gmail.com',
-    packages=['stupidgit'],
+    packages=['stupidgit_gui'],
+    scripts=['bin/stupidgit'],
 
     **extra_options
 )

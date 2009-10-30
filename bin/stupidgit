@@ -1,1 +1,18 @@
-run.py
+#!/usr/bin/env python
+# -*- coding: utf-8
+
+import sys
+from os.path import realpath, dirname, join, exists
+
+# For development version: put .. into module path
+try:
+    dir = dirname(realpath(__file__))
+    if exists(join(dir, '..', 'stupidgit_gui', 'run.py')):
+        sys.path.insert(0, realpath(join(dir, '..')))
+except NameError:
+    # we are in py2exe => no __file__
+    pass
+
+# Run stupidgit
+import stupidgit_gui.run
+stupidgit_gui.run.main()
