@@ -186,6 +186,7 @@ class Repository(object):
         self.all_modules = [self] + self.submodules
 
     def load_refs(self):
+        self.refs = {}
         self.branches = {}
         self.remote_branches = {}
         self.tags = {}
@@ -217,6 +218,8 @@ class Repository(object):
         # References
         for line in self.run_cmd(['show-ref']).split('\n'):
             commit_id, _, refname = line.partition(' ')
+            self.refs[refname] = commit_id
+
             if refname.startswith('refs/heads/'):
                 branchname = refname[11:]
                 self.branches[branchname] = commit_id
@@ -232,6 +235,7 @@ class Repository(object):
                     pass
 
         # Inverse reference hashes
+        self.refs_by_sha1 = invert_hash(self.refs)
         self.branches_by_sha1 = invert_hash(self.branches)
         self.remote_branches_by_sha1 = invert_hash(self.remote_branches)
         self.tags_by_sha1 = invert_hash(self.tags)
@@ -375,6 +379,23 @@ class Repository(object):
 
         return unstaged_changes, staged_changes
 
+    def get_unified_status(self):
+        unified_changes = {}
+
+        # Staged & unstaged changes
+        changes = self.run_cmd(['diff', 'HEAD', '--name-status', '-z']).split('\x00')
+        for i in xrange(len(changes)/2):
+            status, filename = changes[2*i], changes[2*i+1]
+            if filename not in unified_changes or status == FILE_UNMERGED:
+                unified_changes[filename] = status
+
+        # Untracked files
+        for filename in self.run_cmd(['ls-files', '--others', '--exclude-standard', '-z']).split('\x00'):
+            if filename and filename not in unified_changes:
+                unified_changes[filename] = FILE_UNTRACKED
+
+        return unified_changes
+
     def merge_file(self, filename):
         # Store file versions in temporary files
         _, local_file = tempfile.mkstemp(os.path.basename(filename) + '.LOCAL')
@@ -398,6 +419,62 @@ class Repository(object):
             args[i] = args[i].replace('{MERGED}', os.path.join(self.dir, filename))
 
         s = Popen([mergetool] + args, shell=False)
+
+    def get_lost_commits(self, refname, moving_to=None):
+        # Note: refname must be a full reference name (e.g. refs/heads/master)
+        # or HEAD (if head is detached).
+        # moving_to must be a SHA1 commit identifier
+        if refname == 'HEAD':
+            commit_id = self.head
+        else:
+            commit_id = self.refs[refname]
+        commit = commit_pool[commit_id]
+
+        # If commit is not moving, it won't be lost :)
+        if commit_id == moving_to:
+            return []
+
+        # If a commit has another reference, it won't be lost :)
+        head_refnum = len(self.refs_by_sha1.get(commit_id, []))
+        if (refname == 'HEAD' and head_refnum > 0) or head_refnum > 1:
+            return []
+
+        # If commit has descendants, it won't be lost: at least one of its
+        # descendants has another reference
+        if commit.children:
+            return []
+
+        # If commit has parents, traverse the commit graph into this direction.
+        # Mark every commit as lost commit until:
+        #   (1) the end of the graph is found
+        #   (2) a reference is found
+        #   (3) the moving_to destination is found
+        #   (4) a commit is found that has more than one children.
+        #       (it must have a descendant that has a reference)
+        lost_commits = []
+        search_pos = [commit]
+
+        while search_pos:
+            next_search_pos = []
+
+            for c in search_pos:
+                for p in c.parents:
+                    if p.sha1 not in self.refs_by_sha1 and p.sha1 != moving_to \
+                        and len(p.children) == 1:
+                        next_search_pos.append(p)
+
+            lost_commits += search_pos
+            search_pos = next_search_pos
+
+        return lost_commits
+
+    def update_head(self, content):
+        try:
+            f = open(os.path.join(self.dir, '.git', 'HEAD'), 'w')
+            f.write(content)
+            f.close()
+        except OSError:
+            raise GitError, "Write error:\nCannot write into .git/HEAD"
 
 class Commit(object):
     def __init__(self, repo):
@@ -506,4 +583,31 @@ class ConfigFile(object):
             return opts.get(option)
         else:
             return None
+
+# Utility functions
+def diff_for_untracked_file(filename):
+    # Start "diff" text
+    diff_text = 'New file: %s\n' % filename
+
+    # Detect whether file is binary
+    if is_binary_file(filename):
+        diff_text += "@@ File is binary.\n\n"
+    else:
+        # Text file => show lines
+        newfile_text = ''
+        try:
+            f = open(filename, 'r')
+            lines = f.readlines()
+            f.close()
+
+            newfile_text += '@@ -1,0 +1,%d @@\n' % len(lines)
+
+            for line in lines:
+                newfile_text += '+ ' + line
+
+            diff_text += newfile_text
+        except OSError:
+            diff_text += '@@ Error: Cannot open file\n\n'
+
+    return diff_text
 

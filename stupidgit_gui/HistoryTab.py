@@ -3,15 +3,18 @@ import os
 import os.path
 from CommitList import CommitList, EVT_COMMITLIST_SELECT, EVT_COMMITLIST_RIGHTCLICK
 from DiffViewer import DiffViewer
+from SwitchWizard import SwitchWizard
 from Wizard import *
 import git
 from git import GitError
+from util import *
 
 # Menu item ids
 MENU_CHECKOUT_DETACHED  = 10000
 MENU_RESET_BRANCH       = 10001
 MENU_MERGE_COMMIT       = 10002
 MENU_CHERRYPICK_COMMIT  = 10003
+MENU_SWITCH_TO_COMMIT   = 10004
 
 MENU_CREATE_BRANCH      = 11000
 MENU_DELETE_BRANCH      = 12000
@@ -45,6 +48,7 @@ class HistoryTab(wx.Panel):
 
         # Context menu
         self.contextMenu = wx.Menu()
+        wx.EVT_MENU(self, MENU_SWITCH_TO_COMMIT, self.OnSwitchToCommit)
         wx.EVT_MENU(self, MENU_CREATE_BRANCH, self.OnCreateBranch)
         wx.EVT_MENU(self, MENU_CHECKOUT_DETACHED, self.OnCheckout)
         wx.EVT_MENU(self, MENU_RESET_BRANCH, self.OnResetBranch)
@@ -80,6 +84,52 @@ class HistoryTab(wx.Panel):
         self.contextCommit = self.commitList.CommitByRow(e.currentRow)
         self.SetupContextMenu(self.contextCommit)
         self.commitList.PopupMenu(self.contextMenu, e.coords)
+
+    def OnSwitchToCommit(self, e):
+        wizard = SwitchWizard(self.mainWindow, -1, self.repo, self.contextCommit)
+        result = wizard.RunWizard()
+
+        if result > 0:
+            self.mainWindow.ReloadRepo()
+
+            # Check for unmerged changes
+            unmerged = False
+            unstaged, staged = self.repo.get_status()
+            for f in unstaged:
+                if unstaged[f] == git.FILE_UNMERGED:
+                    unmerged = True
+
+            # Show error if checkout failed
+            if wizard.error:
+                wx.MessageBox(safe_unicode(wizard.error), 'Could not switch to this version', style=wx.OK|wx.ICON_ERROR)
+                return
+
+            # Show warning if necessary
+            msg = ''
+            if unmerged:
+                msg = u'- Repository contains unmerged files. You have to merge them manually.'
+
+            if wizard.submoduleWarnings:
+                submodules = wizard.submoduleWarnings.keys()
+                submodules.sort()
+
+                if msg:
+                    msg += '\n- '
+
+                if len(submodules) == 1:
+                    submodule = submodules[0]
+                    msg += u"Submodule '%s' could not be switched to the referenced version:%s" \
+                        % (submodule, safe_unicode(wizard.submoduleWarnings[submodule]))
+                else:
+                    msg += u"Some submodules could not be switched to the referenced version:\n\n"
+                    for submodule in submodules:
+                        msg += u"  - %s: %s\n" % (submodule, safe_unicode(wizard.submoduleReasons[submodule]))
+
+            if msg:
+                if len(msg.split('\n')) == 1:
+                    msg = msg[2:] # remove '- ' from the beginning
+
+                wx.MessageBox(msg, 'Warning', style=wx.OK|wx.ICON_ERROR)
 
     def OnCreateBranch(self, e):
         dialog = wx.TextEntryDialog(self, "Enter branch name:", "Create branch...")
@@ -209,6 +259,9 @@ class HistoryTab(wx.Panel):
         menuItems = self.contextMenu.GetMenuItems()
         for item in menuItems:
             self.contextMenu.Delete(item.GetId())
+
+        # Switch to this version...
+        self.contextMenu.Append(MENU_SWITCH_TO_COMMIT, "Switch to this version...")
 
         # Create branch
         self.contextMenu.Append(MENU_CREATE_BRANCH, "Create branch here...")

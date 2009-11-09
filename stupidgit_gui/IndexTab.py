@@ -184,31 +184,8 @@ class IndexTab(wx.Panel):
         for row in selection:
             filename = self.unstagedChanges[row][0]
             if filename in self.untrackedFiles:
-                # Start "diff" text
-                if diff_text:
-                    diff_text += '\n'
-                diff_text += 'New file: %s\n' % filename
-
-                # Detect whether file is binary
-                if is_binary_file(filename):
-                    diff_text += "@@ File is binary.\n\n"
-                else:
-                    # Text file => show lines
-                    newfile_text = ''
-                    try:
-                        f = open(filename, 'r')
-                        lines = f.readlines()
-                        f.close()
-
-                        newfile_text += '@@ -1,0 +1,%d @@\n' % len(lines)
-
-                        for line in lines:
-                            newfile_text += '+ ' + line
-
-                        diff_text += newfile_text
-                    except OSError:
-                        diff_text += '@@ Error: Cannot open file\n\n'
-
+                filename = os.path.join(self.repo.dir, filename)
+                diff_text += diff_for_untracked_file(filename)
             else:
                 diff_text += self.repo.run_cmd(['diff', self.unstagedChanges[row][0]])
 
@@ -302,37 +279,6 @@ class IndexTab(wx.Panel):
             result.append((filename, mod_type[0]))
 
         return result
-
-def is_binary_file(file):
-    # Returns True if the file cannot be decoded as UTF-8
-    # and > 20% of the file is binary character
-
-    # Read file
-    try:
-        f = open(file)
-        buf = f.read()
-        f.close()
-    except OSError:
-        return False
-
-    # Decode as UTF-8
-    try:
-        ubuf = unicode(buf, 'utf-8')
-        return False
-    except UnicodeDecodeError:
-        pass
-
-    # Check number of binary characters
-    treshold = len(buf) / 5
-    binary_chars = 0
-    for c in buf:
-        oc = ord(c)
-        if oc > 0x7f or (oc < 0x1f and oc != '\r' and oc != '\n'):
-            binary_chars += 1
-            if binary_chars > treshold:
-                return True
-
-    return False
 
 class CommitWizard(Wizard.Wizard):
     def __init__(self, parent, id, repo):

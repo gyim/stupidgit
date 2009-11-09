@@ -54,6 +54,37 @@ def find_binary(locations):
         elif os.path.isfile(location) and os.access(location, os.X_OK):
             yield location
 
+def is_binary_file(file):
+    # Returns True if the file cannot be decoded as UTF-8
+    # and > 20% of the file is binary character
+
+    # Read file
+    try:
+        f = open(file)
+        buf = f.read()
+        f.close()
+    except OSError:
+        return False
+
+    # Decode as UTF-8
+    try:
+        ubuf = unicode(buf, 'utf-8')
+        return False
+    except UnicodeDecodeError:
+        pass
+
+    # Check number of binary characters
+    treshold = len(buf) / 5
+    binary_chars = 0
+    for c in buf:
+        oc = ord(c)
+        if oc > 0x7f or (oc < 0x1f and oc != '\r' and oc != '\n'):
+            binary_chars += 1
+            if binary_chars > treshold:
+                return True
+
+    return False
+
 CREATE_NO_WINDOW = 0x08000000
 def Popen(cmd, **args):
     if sys.platform == 'win32':
