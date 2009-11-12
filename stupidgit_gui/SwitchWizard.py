@@ -300,11 +300,17 @@ class SwitchWizard(wx.Dialog):
             self.branchChoices.Show(1)
             self.newBranchTxt.Show(0)
 
-            self.targetBranch = self.allBranches[0]
+            # Select current branch by default
+            if self.repo.current_branch:
+                branchIndex = self.allBranches.index(self.repo.current_branch)
+            else:
+                branchIndex = 0
+
+            self.targetBranch = self.allBranches[branchIndex]
             self.branchChoices.Clear()
             for branch in self.allBranches:
                 self.branchChoices.Append(branch)
-            self.branchChoices.Select(0)
+            self.branchChoices.Select(branchIndex)
 
         self.swmodeSizer.RecalcSizes()
         self.Validate()
