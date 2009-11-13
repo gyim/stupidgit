@@ -192,6 +192,8 @@ class CommitList(wx.ScrolledWindow):
         self.nodes[commit].references.append((refname, reftype))
 
     def OnPaint(self, evt):
+        evt.Skip(False)
+
         if not self.repo:
             return
 
@@ -206,7 +208,7 @@ class CommitList(wx.ScrolledWindow):
         
         # Get basic drawing context details
         size = self.GetClientSize()
-        width, height = size.GetWidth(), size.GetHeight()
+        clientWidth, clientHeight = size.GetWidth(), size.GetHeight()
 
         # Determine which commits to draw
         x, y, width, height = self.GetUpdateRegion().GetBox()
@@ -247,7 +249,7 @@ class CommitList(wx.ScrolledWindow):
         for row in self.selection:
             if start_row <= row <= end_row:
                 x, y = self.CalcScrolledPosition(0, (row+1)*LINH)
-                dc.DrawRectangle(0, y-LINH/2, width, LINH)
+                dc.DrawRectangle(0, y-LINH/2, clientWidth, LINH)
 
         # Offsets
         offx = COLW
