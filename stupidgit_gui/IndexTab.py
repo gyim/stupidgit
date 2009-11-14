@@ -3,7 +3,7 @@
 import wx
 import wx.html
 from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin, ListCtrlSelectionManagerMix
-import os
+import os, os.path
 import sys
 
 import Wizard
@@ -220,8 +220,9 @@ class IndexTab(wx.Panel):
             self.PopupMenu(self.unstagedMenu)
 
     def OnCommit(self, e):
-        if len(self.stagedChanges) == 0:
+        if len(self.stagedChanges) == 0 and not os.path.exists(os.path.join(self.repo.dir, '.git', 'MERGE_HEAD')):
             return
+
         if len([c for f,c in self.unstagedChanges if c == FILE_UNMERGED]):
             wx.MessageBox(
                 "You should fix conflicts before commiting!",
