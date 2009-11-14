@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=0.1
+Name=StupidGit
+Icon=/usr/share/stupidgit/icon_48x48.png
+Comment=Cross-platform git GUI with submodule support
+Exec=/usr/bin/stupidgit
+Terminal=false
+Type=Application
+Categories=GNOME;GTK;Development;
+StartupNotify=false
+Name[en_US]=StupidGit
+

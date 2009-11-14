@@ -8,6 +8,7 @@ Usage (Windows):
     python setup.py py2exe
 """
 import sys
+import os
 from setuptools import setup
 
 if sys.platform == 'darwin':
@@ -33,6 +34,13 @@ elif sys.platform == 'win32':
             'icon_resources': [(0,'icon/icon.ico')],
             'dest_base': 'stupidgit'
         }],
+    )
+elif os.name == 'posix':
+    extra_options = dict(
+        data_files = [
+            ('/usr/share/stupidgit', ['icon/icon_48x48.png']),
+            ('/usr/share/applications', ['stupidgit.desktop'])
+        ]
     )
 else:
     extra_options=dict()
