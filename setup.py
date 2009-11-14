@@ -30,6 +30,7 @@ elif sys.platform == 'win32':
         setup_requires=['py2exe'],
         windows=[{
             'script': 'bin/stupidgit',
+            'icon_resources': [(0,'icon/icon.ico')],
             'dest_base': 'stupidgit'
         }],
     )
