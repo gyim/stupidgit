@@ -1,5 +1,4 @@
 from git import *
-from OverviewTab import OverviewTab
 from HistoryTab import HistoryTab
 from IndexTab import IndexTab
 import wx
@@ -92,10 +91,6 @@ class MainWindow(wx.Frame):
         self.pageChooser = wx.Notebook(self, -1)
         self.sizer.Add(self.pageChooser, 1, wx.EXPAND)
 
-        # Overview page
-        self.overviewTab = OverviewTab(self, self.pageChooser, -1)
-        self.pageChooser.AddPage(self.overviewTab, "Overview")
-
         # History page
         self.historyTab = HistoryTab(self, self.pageChooser, -1)
         self.pageChooser.AddPage(self.historyTab, "History")
@@ -104,7 +99,7 @@ class MainWindow(wx.Frame):
         self.indexTab = IndexTab(self, self.pageChooser, -1)
         self.pageChooser.AddPage(self.indexTab, "Index")
 
-        self.pageChooser.ChangeSelection(1)
+        self.pageChooser.ChangeSelection(0)
 
         self.SetRepo(self.mainRepo)
         self.sizer.Layout()
@@ -128,7 +123,6 @@ class MainWindow(wx.Frame):
     def SetRepo(self, repo):
         self.currentRepo = repo
         self.currentRepo.load_refs()
-        self.overviewTab.SetRepo(repo)
         self.historyTab.SetRepo(repo)
         self.indexTab.SetRepo(repo)
 
