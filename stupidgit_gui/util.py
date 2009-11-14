@@ -11,6 +11,8 @@ def safe_unicode(s):
 
     if type(s) == unicode:
         return s
+    elif isinstance(s, Exception):
+        s = str(s)
     
     try:
         return s.decode('UTF-8')

@@ -526,11 +526,10 @@ class CommitWizard(Wizard.Wizard):
                     try:
                         self.repo.commit(self.authorName, self.authorEmail, msg, amend=is_amend)
                     except GitError, msg:
-                        msg = wx.MessageDialog(
-                            self,
-                            msg,
+                        wx.MessageBox(
+                            safe_unicode(msg),
                             "Error",
-                            wx.ICON_ERROR | wx.OK
+                            style=wx.ICON_ERROR | wx.OK
                         )
                         
                     self.EndWizard(0)
