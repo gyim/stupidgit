@@ -1,3 +1,4 @@
+# -*- coding: utf-8
 from git import *
 from HistoryTab import HistoryTab
 from IndexTab import IndexTab
@@ -7,6 +8,35 @@ ID_NEWWINDOW    = 101
 ID_CLOSEWINDOW  = 102
 
 app_windows = []
+license_text = u'''
+Copyright (c) 2009 Ákos Gyimesi
+
+Permission is hereby granted, free of charge, to
+any person obtaining a copy of this software and
+associated documentation files (the "Software"),
+to deal in the Software without restriction,
+including without limitation the rights to use,
+copy, modify, merge, publish, distribute,
+sublicense, and/or sell copies of the Software,
+and to permit persons to whom the Software is
+furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission
+notice shall be included in all copies or
+substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY
+OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
+OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+'''
 
 class MainWindow(wx.Frame):
     def __init__(self, parent, id, repo):
@@ -38,15 +68,20 @@ class MainWindow(wx.Frame):
         windowmenu = wx.Menu()
         windowmenu.Append(ID_CLOSEWINDOW, "Close &Window\tCtrl-W")
 
+        helpmenu = wx.Menu()
+        helpmenu.Append(wx.ID_ABOUT, "&About", "About stupidgit")
+
         menubar = wx.MenuBar()
         menubar.Append(filemenu, "&File")
         menubar.Append(windowmenu, "&Window")
+        menubar.Append(helpmenu, "&Help")
         self.SetMenuBar(menubar)
 
         wx.EVT_MENU(self, ID_NEWWINDOW, self.OnNewWindow)
         wx.EVT_MENU(self, ID_CLOSEWINDOW, lambda e: self.Close(True))
         wx.EVT_MENU(self, wx.ID_OPEN, self.OnOpenRepository)
         wx.EVT_MENU(self, wx.ID_EXIT, self.OnExit)
+        wx.EVT_MENU(self, wx.ID_ABOUT, self.OnAbout)
 
     def OnNewWindow(self, e):
         win = MainWindow(None, -1, None)
@@ -66,6 +101,16 @@ class MainWindow(wx.Frame):
                 self.SetMainRepo(repo)
         except GitError, msg:
             wx.MessageBox(str(msg), 'Error', style=wx.OK|wx.ICON_ERROR)
+
+    def OnAbout(self, e):
+        info = wx.AboutDialogInfo()
+        info.SetName("stupidgit")
+        info.SetDescription("A cross-platform git GUI with strong submodule support.\n\nHomepage: http://github.com/gyim/stupidgit")
+        info.SetVersion("v0.1")
+        info.SetCopyright(u"(c) Ákos Gyimesi, 2009.")
+        info.SetLicense(license_text)
+
+        wx.AboutBox(info)
 
     def OnClose(self, e):
         app_windows.remove(self)
