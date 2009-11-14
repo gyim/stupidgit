@@ -3,15 +3,18 @@ from HistoryTab import HistoryTab
 from IndexTab import IndexTab
 import wx
 
-ID_NEWWINDOW = 101
-ID_OPEN      = 102
-ID_EXIT      = 103
+ID_NEWWINDOW    = 101
+ID_CLOSEWINDOW  = 102
+
+app_windows = []
 
 class MainWindow(wx.Frame):
     def __init__(self, parent, id, repo):
         wx.Frame.__init__(self, parent, wx.ID_ANY, "stupidgit", size=(550,600))
+        app_windows.append(self)
 
         self.CreateMenu()
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
@@ -26,19 +29,24 @@ class MainWindow(wx.Frame):
 
     def CreateMenu(self):
         filemenu = wx.Menu()
-        filemenu.Append(ID_NEWWINDOW, "&New window", "Open new window")
+        filemenu.Append(ID_NEWWINDOW, "&New window\tCtrl-N", "Open new window")
         filemenu.AppendSeparator()
-        filemenu.Append(ID_OPEN, "&Open repository", "Open an existing repository")
+        filemenu.Append(wx.ID_OPEN)
         filemenu.AppendSeparator()
-        filemenu.Append(ID_EXIT, "E&xit", "Exit stupidgit")
+        filemenu.Append(wx.ID_EXIT)
+
+        windowmenu = wx.Menu()
+        windowmenu.Append(ID_CLOSEWINDOW, "Close &Window\tCtrl-W")
 
         menubar = wx.MenuBar()
         menubar.Append(filemenu, "&File")
+        menubar.Append(windowmenu, "&Window")
         self.SetMenuBar(menubar)
 
         wx.EVT_MENU(self, ID_NEWWINDOW, self.OnNewWindow)
-        wx.EVT_MENU(self, ID_OPEN, self.OnOpenRepository)
-        wx.EVT_MENU(self, ID_EXIT, self.OnExit)
+        wx.EVT_MENU(self, ID_CLOSEWINDOW, lambda e: self.Close(True))
+        wx.EVT_MENU(self, wx.ID_OPEN, self.OnOpenRepository)
+        wx.EVT_MENU(self, wx.ID_EXIT, self.OnExit)
 
     def OnNewWindow(self, e):
         win = MainWindow(None, -1, None)
@@ -59,8 +67,13 @@ class MainWindow(wx.Frame):
         except GitError, msg:
             wx.MessageBox(str(msg), 'Error', style=wx.OK|wx.ICON_ERROR)
 
+    def OnClose(self, e):
+        app_windows.remove(self)
+        self.Destroy()
+
     def OnExit(self, e):
-        self.Close(True)
+        while app_windows:
+            app_windows[0].Close(True)
 
     def CreateRepoControls(self):
         if self.emptyText:
