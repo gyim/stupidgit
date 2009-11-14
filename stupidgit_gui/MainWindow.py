@@ -105,8 +105,8 @@ class MainWindow(wx.Frame):
         self.sizer.Layout()
 
     def CreateEmptyText(self):
-        self.emptyText = wx.StaticText(self, -1, 'Welcome to stupidgit!\n\nYou can create or open a repository in the File menu.')
-        self.sizer.Add(self.emptyText, 1, wx.EXPAND)
+        self.emptyText = wx.StaticText(self, -1, 'Welcome to stupidgit!\n\nYou can open a repository in the File menu.')
+        self.sizer.Add(self.emptyText, 1, wx.EXPAND | wx.ALL, 10)
 
     def SetMainRepo(self, repo):
         self.mainRepo = repo
