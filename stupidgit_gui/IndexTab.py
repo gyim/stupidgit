@@ -222,6 +222,13 @@ class IndexTab(wx.Panel):
     def OnCommit(self, e):
         if len(self.stagedChanges) == 0:
             return
+        if len([c for f,c in self.unstagedChanges if c == FILE_UNMERGED]):
+            wx.MessageBox(
+                "You should fix conflicts before commiting!",
+                "Error",
+                style=wx.ICON_EXCLAMATION | wx.OK
+            )
+            return
 
         # Show commit wizard
         commit_wizard = CommitWizard(self.mainWindow, -1, self.repo)
