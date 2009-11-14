@@ -34,6 +34,8 @@ else:
     LABEL_DISCARD = u"× Discard"
 
 MENU_MERGE_FILE     = 20000
+MENU_TAKE_LOCAL     = 20001
+MENU_TAKE_REMOTE    = 20002
 
 class FileList(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlSelectionManagerMix):
     def __init__(self, parent, ID, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.LC_REPORT | wx.LC_NO_HEADER):
@@ -78,7 +80,11 @@ class IndexTab(wx.Panel):
 
         self.unstagedMenu = wx.Menu()
         self.unstagedMenu.Append(MENU_MERGE_FILE, "Merge file")
+        self.unstagedMenu.Append(MENU_TAKE_LOCAL, "Take local version")
+        self.unstagedMenu.Append(MENU_TAKE_REMOTE, "Take remote version")
         wx.EVT_MENU(self, MENU_MERGE_FILE, self.OnMergeFile)
+        wx.EVT_MENU(self, MENU_TAKE_LOCAL, self.OnTakeLocal)
+        wx.EVT_MENU(self, MENU_TAKE_REMOTE, self.OnTakeRemote)
 
         # Stage/unstage/discard buttons
         self.actionButtons = wx.BoxSizer(wx.VERTICAL)
@@ -237,6 +243,45 @@ class IndexTab(wx.Panel):
 
     def OnMergeFile(self, e):
         self.repo.merge_file(self.unstagedChanges[self.selectedUnstagedItem][0])
+
+    def _simpleMerge(self, filename, msg, index):
+        msg = wx.MessageDialog(
+            self.mainWindow,
+            msg,
+            "Warning",
+            wx.ICON_EXCLAMATION | wx.YES_NO | wx.YES_DEFAULT
+        )
+        if msg.ShowModal() == wx.ID_YES:
+            try:
+                content = self.repo.run_cmd(['cat-file', 'blob', ':%d:%s' % (index, filename)], raise_error=True)
+                f = open(os.path.join(self.repo.dir, filename), 'wb')
+                f.write(content)
+                f.close()
+                self.repo.run_cmd(['add', filename], raise_error=True)
+            except GitError, e:
+                wx.MessageBox(safe_unicode(e), "Error", style=wx.OK|wx.ICON_ERROR)
+            except OSError, e:
+                wx.MessageBox(safe_unicode(e), "Error", style=wx.OK|wx.ICON_ERROR)
+
+        self.Refresh()
+
+    def OnTakeLocal(self, e):
+        filename = self.unstagedChanges[self.selectedUnstagedItem][0]
+
+        msg = "You are about to stage the HEAD version of file '%s' " \
+            "and discard any modifications from the merged commit.\n\n" \
+            "Do you want to continue?" % filename
+
+        self._simpleMerge(filename, msg, 2)
+
+    def OnTakeRemote(self, e):
+        filename = self.unstagedChanges[self.selectedUnstagedItem][0]
+
+        msg = "You are about to stage the MERGE_HEAD version of file '%s' " \
+            "and discard the version that is in the current HEAD.\n\n" \
+            "Do you want to continue?" % filename
+
+        self._simpleMerge(filename, msg, 3)
 
     def SetRepo(self, repo):
         self.repo = repo
