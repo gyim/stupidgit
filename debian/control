@@ -10,6 +10,13 @@ Package: stupidgit
 Architecture: all
 Homepage: http://github.com/gyim/stupidgit
 XB-Python-Version: ${python:Versions}
-Depends: ${misc:Depends}, ${python:Depends}, git-core (>= 1.6.0), python-wxgtk2.8
+Depends: ${misc:Depends}, ${python:Depends}, git-core (>= 1.6.0), python-wxgtk2.8, meld (>= 1.2)
 Description: A cross-platform git GUI with strong support for submodules
- StupidGit comes with a native look and does what you want.
+ StupidGit is a simple but powerful git GUI with minimalistic look
+ and strong support for submodules. Its features include:
+ - History graph with diff viewer
+ - Index editor (stage/unstage changes)
+ - Commit / amend commit
+ - Easy-to-use switch tool that also switches submodule versions if asked
+ - Merge, resolve conflicts with external merge tool (meld)
+ - Cherry-pick, revert
