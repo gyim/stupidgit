@@ -1,7 +1,26 @@
 Installation
 ============
 
-Simply clone the StupidGit repository to any place you want.
+The easiest way to install StupidGit is to download one of its binary releases:
+  http://github.com/gyim/stupidgit/downloads
+
+If you want to run the latest, unreleased version of StupidGit, simply clone
+the StupidGit repository to any place you want. You can either run StupidGit
+from this directory or create a binary release with one of the following
+commands:
+
+  - Windows:
+    - setup.py py2exe
+    - setup.iss (press F9 and then Ctrl-F9 to create a setup package)
+  - Ubuntu Linux: make builddeb
+  - Mac OS X: make buildapp
+  - Other systems: python setup.py install
+
+For creating binary releases you will need to install Python >=2.5, wxPython,
+setuptools and py2exe+InnoSetup/debhelper scripts/py2app, respectively.
+
+Running StupidGit
+=================
 
 To run StupidGit, you will need the following packages:
 - Python >= 2.5
@@ -11,7 +30,9 @@ To run StupidGit, you will need the following packages:
 - wxPython >= 2.8
   - Windows: http://www.wxpython.org/download.php
   - Ubuntu Linux: apt-get install python-wxgtk2.8
-  - OS X: installed by default
+  - OS X Leopard: installed by default.
+  - OS X Snow Leopard: installed by default, but you should make sure
+    that Python is running in 32 bit mode.
 - Git >= 1.6
   ... if this is not installed yet, you probably don't need this program ;)
   StupidGit is tested with the standard git-core package on Ubuntu,
@@ -22,16 +43,23 @@ StupidGit will search git binary on the following locations:
 - on Unix platforms: /opt/local/bin (for MacPorts)
 - on Windows: C:\Program Files\Git\bin (default path for msysgit)
 
-Running StupidGit
-=================
-
 On unix systems it is useful to create a symlink to
 <StupidGit_dir>/bin/stupidgit from a directory which is in the PATH. If you
 invoke stupidgit from a directory which is inside a git repository, it will
 open that repo by default (just as gitk does).
 
-On Windows, double-click on <StupidGit_dir>/bin/run.py. This will open the
-StupidGit repository by default, but you can open another repository easily :)
+External merge tools:
+=====================
+
+It is advised to install an external merge tool for StupidGit. Currently the
+following tools are supported:
+
+  - Windows: WinMerge
+  - OS X: DiffMerge
+  - Unix (including OS X): meld
+
+Merge tools are searched in PATH and in their default installation
+directories.
 
 Development
 ===========
