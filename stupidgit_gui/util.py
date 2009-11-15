@@ -19,7 +19,10 @@ def safe_unicode(s):
     except UnicodeDecodeError:
         pass
 
-    lang,encoding = locale.getdefaultlocale()
+    try:
+        lang,encoding = locale.getdefaultlocale()
+    except ValueError:
+        lang,encoding = 'C','UTF-8'
 
     if encoding != 'UTF-8':
         try:
