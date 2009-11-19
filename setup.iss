@@ -30,5 +30,34 @@ Source: dist\wxmsw28uh_adv_vc.dll; DestDir: {app}
 Source: dist\wxmsw28uh_core_vc.dll; DestDir: {app}
 Source: dist\wxmsw28uh_html_vc.dll; DestDir: {app}
 Source: dist\wxmsw28uh_stc_vc.dll; DestDir: {app}
+
 [Icons]
 Name: {group}\StupidGit; Filename: {app}\stupidgit.exe; WorkingDir: {app}; IconIndex: 0
+Name: {group}\{cm:UninstallProgram,StupidGit}; Filename: {uninstallexe}
+Name: {userdesktop}\StupidGit; Filename: {app}\stupidgit.exe; Tasks: desktopicon; WorkingDir: {app}; IconIndex: 0
+Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\StupidGit; Filename: {app}\stupidgit.exe; Tasks: quicklaunchicon; WorkingDir: {app}; IconIndex: 0
+
+[Tasks]
+Name: desktopicon; Description: {cm:CreateDesktopIcon}; GroupDescription: {cm:AdditionalIcons}; Flags: unchecked
+Name: quicklaunchicon; Description: {cm:CreateQuickLaunchIcon}; GroupDescription: {cm:AdditionalIcons}; Flags: unchecked
+Name: contextmenu; Description: "Add StupidGit to context menu"; GroupDescription: "Windows Explorer integration";
+
+[Code]
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+    if (CurStep = ssPostInstall) and IsTaskSelected('contextmenu') then
+    begin
+      RegWriteStringValue(HKCR, 'Directory\shell\StupidGit\command', '', '"' + ExpandConstant('{app}') + '\stupidgit.exe" "%1"');
+    end;
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+    if CurUninstallStep = usUninstall then
+    begin
+        if RegKeyExists(HKCR, 'Directory\shell\StupidGit') then
+        begin
+          RegDeleteKeyIncludingSubkeys(HKCR, 'Directory\shell\StupidGit');
+        end;
+    end;
+end;
