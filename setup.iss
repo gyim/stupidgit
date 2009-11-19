@@ -40,7 +40,7 @@ Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\StupidGit; Filename
 [Tasks]
 Name: desktopicon; Description: {cm:CreateDesktopIcon}; GroupDescription: {cm:AdditionalIcons}; Flags: unchecked
 Name: quicklaunchicon; Description: {cm:CreateQuickLaunchIcon}; GroupDescription: {cm:AdditionalIcons}; Flags: unchecked
-Name: contextmenu; Description: "Add StupidGit to context menu"; GroupDescription: "Windows Explorer integration";
+Name: contextmenu; Description: "Add StupidGit to context menu"; GroupDescription: "Windows Explorer integration:";
 
 [Code]
 procedure CurStepChanged(CurStep: TSetupStep);
