@@ -68,7 +68,7 @@ else:
 
 setup(
     name='StupidGit',
-    version='0.1',
+    version='0.1.1',
     description='A cross-platform git GUI with strong support for submodules',
     author='Akos Gyimesi',
     author_email='gyimesi.akos@gmail.com',

@@ -1,3 +1,9 @@
+stupidgit (0.1.1) unstable; urgency=low
+
+  * Added /usr/local/git/bin to default git paths
+
+ -- Akos Gyimesi <gyimesi.akos@gmail.com>  Fri, 20 Nov 2009 11:39:52 +0100
+
 stupidgit (0.1.0) unstable; urgency=low
 
   * Initial release.

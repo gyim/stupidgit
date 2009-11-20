@@ -4,7 +4,7 @@
 [Setup]
 AppCopyright=© Akos Gyimesi, 2009
 AppName=StupidGit
-AppVerName=0.1
+AppVerName=0.1.1
 PrivilegesRequired=none
 DefaultDirName={pf}\StupidGit
 DefaultGroupName=StupidGit

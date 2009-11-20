@@ -4,6 +4,8 @@ from HistoryTab import HistoryTab
 from IndexTab import IndexTab
 import wx
 
+STUPIDGIT_VERSION = "v0.1.1"
+
 ID_NEWWINDOW    = 101
 ID_CLOSEWINDOW  = 102
 
@@ -106,7 +108,7 @@ class MainWindow(wx.Frame):
         info = wx.AboutDialogInfo()
         info.SetName("stupidgit")
         info.SetDescription("A cross-platform git GUI with strong submodule support.\n\nHomepage: http://github.com/gyim/stupidgit")
-        info.SetVersion("v0.1")
+        info.SetVersion(STUPIDGIT_VERSION)
         info.SetCopyright(u"(c) Ákos Gyimesi, 2009.")
         info.SetLicense(license_text)
 
