@@ -9,7 +9,13 @@ Usage (Windows):
 """
 import sys
 import os
-from setuptools import setup
+import distutils.core
+import distutils.command.install
+
+if sys.platform == 'darwin':
+    from setuptools import setup
+else:
+    from distutils.core import setup
 
 if sys.platform == 'darwin':
     extra_options = dict(
@@ -27,6 +33,21 @@ if sys.platform == 'darwin':
     )
 elif sys.platform == 'win32':
     import py2exe
+
+    if sys.version >= '2.6':
+        print "Due to a py2exe bug StupidGit can be built only from Python 2.5!"
+        os.exit()
+
+    # Workaround py2exe bug
+    origIsSystemDLL = py2exe.build_exe.isSystemDLL
+
+    def isSystemDLL(pathname):
+        if os.path.basename(pathname).lower() in ("msvcp71.dll", "dwmapi.dll"):
+            return 0
+        return origIsSystemDLL(pathname)
+
+    py2exe.build_exe.isSystemDLL = isSystemDLL
+
     extra_options = dict(
         setup_requires=['py2exe'],
         windows=[{

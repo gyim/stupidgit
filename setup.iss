@@ -12,7 +12,7 @@ DefaultGroupName=StupidGit
 [Files]
 Source: dist\bz2.pyd; DestDir: {app}
 Source: dist\library.zip; DestDir: {app}
-Source: dist\python26.dll; DestDir: {app}
+Source: dist\python25.dll; DestDir: {app}
 Source: dist\select.pyd; DestDir: {app}
 Source: dist\stupidgit.exe; DestDir: {app}
 Source: dist\unicodedata.pyd; DestDir: {app}
@@ -30,6 +30,8 @@ Source: dist\wxmsw28uh_adv_vc.dll; DestDir: {app}
 Source: dist\wxmsw28uh_core_vc.dll; DestDir: {app}
 Source: dist\wxmsw28uh_html_vc.dll; DestDir: {app}
 Source: dist\wxmsw28uh_stc_vc.dll; DestDir: {app}
+Source: dist\MSVCP71.dll; DestDir: {app}
+Source: dist\MSVCR71.dll; DestDir: {app}
 
 [Icons]
 Name: {group}\StupidGit; Filename: {app}\stupidgit.exe; WorkingDir: {app}; IconIndex: 0
@@ -40,7 +42,7 @@ Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\StupidGit; Filename
 [Tasks]
 Name: desktopicon; Description: {cm:CreateDesktopIcon}; GroupDescription: {cm:AdditionalIcons}; Flags: unchecked
 Name: quicklaunchicon; Description: {cm:CreateQuickLaunchIcon}; GroupDescription: {cm:AdditionalIcons}; Flags: unchecked
-Name: contextmenu; Description: "Add StupidGit to context menu"; GroupDescription: "Windows Explorer integration:";
+Name: contextmenu; Description: Add StupidGit to context menu; GroupDescription: Windows Explorer integration:
 
 [Code]
 procedure CurStepChanged(CurStep: TSetupStep);
