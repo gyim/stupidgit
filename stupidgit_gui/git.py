@@ -53,7 +53,7 @@ def git_binary():
 
     # Search for git binary
     if os.name == 'posix':
-        locations = ['{PATH}/git', '/opt/local/bin/git']
+        locations = ['{PATH}/git', '/opt/local/bin/git', '/usr/local/git/bin']
     elif sys.platform == 'win32':
         locations = (r'{PATH}\git.exe', r'C:\Program Files\Git\bin\git.exe')
     elif sys.platform == 'cygwin':

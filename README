@@ -40,7 +40,7 @@ To run StupidGit, you will need the following packages:
 
 StupidGit will search git binary on the following locations:
 - PATH
-- on Unix platforms: /opt/local/bin (for MacPorts)
+- on Unix platforms: /opt/local/bin (for MacPorts), /usr/local/git/bin (OSX build)
 - on Windows: C:\Program Files\Git\bin (default path for msysgit)
 
 On unix systems it is useful to create a symlink to
