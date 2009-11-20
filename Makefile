@@ -18,7 +18,8 @@ install:
 	$(PYTHON) setup.py install --root $(DESTDIR) $(COMPILE)
 
 buildapp:
-	$(PYTHON) setup.py py2app --iconfile icon/icon.icns
+	$(PYTHON) setup.py py2app -s --iconfile icon/icon.icns
+	rm -rf dist/StupidGit.app/Contents/Resources/lib/python2.5/wx
 
 buildrpm:
 	$(PYTHON) setup.py bdist_rpm --post-install=rpm/postinstall --pre-uninstall=rpm/preuninstall
