@@ -345,7 +345,12 @@ class CommitList(wx.ScrolledWindow):
             x = text_column*COLW + offx + msg_offset
             y = node.y*LINH + offy - LINH/2
             xx, yy = self.CalcScrolledPosition(x, y)
+            
+            if self.rows.index((node, edges)) in self.selection:
+                dc.SetTextForeground(wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHTTEXT))
+
             dc.DrawText(safe_unicode(node.commit.short_msg), xx, yy)
+            dc.SetTextForeground(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWTEXT))
 
         dc.EndDrawing()
 
