@@ -302,7 +302,7 @@ class CommitList(wx.ScrolledWindow):
             if node.y < len(self.rows)-1:
                 text_column = max(len(edges), len(self.rows[node.y+1][1]))
             else:
-                text_column = len(edges)
+                text_column = len(edges) if len(edges) > 0 else 1
 
             # Draw references
             msg_offset = 0
