@@ -141,7 +141,7 @@ class CommitList(wx.ScrolledWindow):
                         success = True
                         for yy in xrange(node.y, child.y, -1):
                             n, edges = rows[yy]
-                            if len(edges) > edge.x and edges[edge.x] != None:
+                            if (yy < node.y and n.x == edge.x) or (len(edges) > edge.x and edges[edge.x] != None):
                                 edge.x += 1
                                 success = False
                                 break
