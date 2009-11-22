@@ -220,6 +220,9 @@ class CommitList(wx.ScrolledWindow):
         commit_brush = wx.Brush(wx.Colour(255,255,255,255))
         commit_font = platformspec.Font(12)
 
+        commit_textcolor_normal = wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWTEXT)
+        commit_textcolor_highlight = wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHTTEXT)
+
         edge_pens = [ wx.Pen(wx.Colour(*c), width=2) for c in EDGE_COLORS ]
         
         selection_pen = wx.NullPen
@@ -242,6 +245,7 @@ class CommitList(wx.ScrolledWindow):
             wx.Brush(wx.Colour(192,192,192,255))  # REF_MODULE
         ]
         ref_font = platformspec.Font(9)
+        ref_textcolor = wx.Colour(0,0,0,255)
 
         # Draw selection
         dc.SetPen(selection_pen)
@@ -311,6 +315,7 @@ class CommitList(wx.ScrolledWindow):
                 dc.SetPen(ref_pens[reftype])
                 dc.SetBrush(ref_brushes[reftype])
                 dc.SetFont(ref_font)
+                dc.SetTextForeground(ref_textcolor)
 
                 x = text_column*COLW + offx + msg_offset
                 y = node.y*LINH + offy - LINH/2 + 1
@@ -347,10 +352,11 @@ class CommitList(wx.ScrolledWindow):
             xx, yy = self.CalcScrolledPosition(x, y)
             
             if self.rows.index((node, edges)) in self.selection:
-                dc.SetTextForeground(wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHTTEXT))
+                dc.SetTextForeground(commit_textcolor_highlight)
+            else:
+                dc.SetTextForeground(commit_textcolor_normal)
 
             dc.DrawText(safe_unicode(node.commit.short_msg), xx, yy)
-            dc.SetTextForeground(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWTEXT))
 
         dc.EndDrawing()
 
