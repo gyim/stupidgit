@@ -42,7 +42,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 class MainWindow(wx.Frame):
     def __init__(self, parent, id, repo):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, "stupidgit", size=(550,600))
+        # Read default window size
+        self.config = wx.Config('stupidgit')
+        width  = self.config.ReadInt('MainWindowWidth', 550)
+        height = self.config.ReadInt('MainWindowHeight', 600)
+
+        # Create window
+        wx.Frame.__init__(self, parent, wx.ID_ANY, "stupidgit", size=(width,height))
         app_windows.append(self)
 
         self.CreateMenu()
@@ -51,6 +57,7 @@ class MainWindow(wx.Frame):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
 
+        # Load repository or static text
         if repo:
             self.emptyText = None
             self.SetMainRepo(repo)
@@ -115,6 +122,12 @@ class MainWindow(wx.Frame):
         wx.AboutBox(info)
 
     def OnClose(self, e):
+        # Save window geometry
+        size = self.GetSize()
+        self.config.WriteInt('MainWindowWidth', size.GetWidth())
+        self.config.WriteInt('MainWindowHeight', size.GetHeight())
+
+        # Close window
         app_windows.remove(self)
         self.Destroy()
 
