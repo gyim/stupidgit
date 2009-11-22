@@ -127,6 +127,10 @@ class MainWindow(wx.Frame):
         self.config.WriteInt('MainWindowWidth', size.GetWidth())
         self.config.WriteInt('MainWindowHeight', size.GetHeight())
 
+        # Notify tabs
+        self.historyTab.OnClose()
+        self.indexTab.OnClose()
+
         # Close window
         app_windows.remove(self)
         self.Destroy()

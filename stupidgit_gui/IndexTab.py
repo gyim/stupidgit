@@ -135,7 +135,8 @@ class IndexTab(wx.Panel):
 
         # Split window
         self.splitter.SetMinimumPaneSize(120)
-        self.splitter.SplitHorizontally(self.topPanel, self.bottomPanel, 200)
+        splitPos = self.mainWindow.config.ReadInt('IndexTabSplitterPos', 200)
+        self.splitter.SplitHorizontally(self.topPanel, self.bottomPanel, splitPos)
 
     def OnStage(self, e):
         for row in self.unstagedList.GetSelections():
@@ -320,6 +321,9 @@ class IndexTab(wx.Panel):
 
     def Refresh(self):
         self.SetRepo(self.repo)
+
+    def OnClose(self):
+        self.mainWindow.config.WriteInt('IndexTabSplitterPos', self.splitter.GetSashPosition())
 
     def _parse_diff_output(self, cmd):
         output = self.repo.run_cmd(cmd)

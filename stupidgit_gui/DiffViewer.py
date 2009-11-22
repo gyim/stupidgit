@@ -31,7 +31,7 @@ class DiffViewer(wx.Panel):
 
         # Create text control
         self.textCtrl = wx.stc.StyledTextCtrl(self, -1)
-        self.sizer.Add(self.textCtrl, True, wx.EXPAND)
+        self.sizer.Add(self.textCtrl, 1, wx.EXPAND)
 
         # Create markers
         self.textCtrl.MarkerDefine(MARK_FILE,

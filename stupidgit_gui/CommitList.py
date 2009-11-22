@@ -37,6 +37,9 @@ class CommitList(wx.ScrolledWindow):
         self.mainRepoSelection = []
         self.allowMultiple = allowMultiple
 
+        # This is needed so that splitter resizing will work properly...
+        self.SetSizer(wx.BoxSizer(wx.VERTICAL)) 
+
     def SetRepo(self, repo):
         # Save selection if the last repo was the main repo
         if self.repo and self.repo == self.mainRepo:

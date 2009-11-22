@@ -32,7 +32,7 @@ class HistoryTab(wx.Panel):
 
         # Splitter
         self.splitter = wx.SplitterWindow(self, -1, style=wx.SP_LIVE_UPDATE)
-        self.sizer.Add(self.splitter, True, wx.EXPAND, wx.ALL)
+        self.sizer.Add(self.splitter, 1, wx.EXPAND)
 
         # History graph
         self.commitList = CommitList(self.splitter, -1)
@@ -42,7 +42,8 @@ class HistoryTab(wx.Panel):
         self.diffViewer = DiffViewer(self.splitter, -1)
 
         self.splitter.SetMinimumPaneSize(20)
-        self.splitter.SplitHorizontally(self.commitList, self.diffViewer, 200)
+        splitPos = self.mainWindow.config.ReadInt('HistoryTabSplitterPos', 200)
+        self.splitter.SplitHorizontally(self.commitList, self.diffViewer, splitPos)
 
         # Context menu
         self.contextMenu = wx.Menu()
@@ -249,6 +250,8 @@ class HistoryTab(wx.Panel):
 
                 wx.MessageBox(warningMsg, warningTitle, style=wx.OK|wx.ICON_ERROR)
 
+    def OnClose(self):
+        self.mainWindow.config.WriteInt('HistoryTabSplitterPos', self.splitter.GetSashPosition())
 
     def SetupContextMenu(self, commit):
         branches = self.repo.branches_by_sha1.get(commit.sha1, [])
