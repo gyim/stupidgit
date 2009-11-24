@@ -101,7 +101,7 @@ def detect_mergetool():
     # Return error if no tool was found
     raise GitError, "Cannot detect any merge tool"
 
-def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False, input=None, env={}, run_bg=False, detach_tty=False):
+def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False, input=None, env={}, run_bg=False, setup_askpass=False):
     # Check args
     if type(args) in [str, unicode]:
         args = [args]
@@ -119,10 +119,14 @@ def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False,
     if type(args) != list:
         args = [args]
 
+    # Setup environment
     git_env = dict(os.environ)
+    if setup_askpass and 'SSH_ASKPASS' not in git_env:
+        git_env['SSH_ASKPASS'] = '%s-askpass' % os.path.realpath(os.path.abspath(sys.argv[0]))
+
     git_env.update(env)
     
-    preexec_fn = os.setsid if detach_tty else None
+    preexec_fn = os.setsid if setup_askpass else None
 
     p = Popen([git_binary()] + args, stdout=subprocess.PIPE,
               stderr=subprocess.PIPE, stdin=subprocess.PIPE,
@@ -646,8 +650,7 @@ class FetchThread(threading.Thread):
         self.aborted = False
 
         # Run git
-        env = {'SSH_ASKPASS': '/opt/local/libexec/git-core/git-gui--askpass'}
-        self.process = self.repo.run_cmd(['fetch-pack', '-v', '--all', self.repo.remotes[self.remote]], run_bg=True, env=env, detach_tty=True)
+        self.process = self.repo.run_cmd(['fetch-pack', '-v', '--all', self.repo.remotes[self.remote]], run_bg=True, setup_askpass=True)
         self.process.stdin.close()
 
         # Read stdout from a different thread (select.select() does not work
