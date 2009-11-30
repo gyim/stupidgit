@@ -7,6 +7,7 @@ class FetchSetupDialog(wx.Dialog):
         self.repo = repo
 
         self.SetTitle('Fetch objects from remote repository')
+        self.Bind(wx.EVT_CLOSE, self.OnCancel)
 
         # Layout
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -49,7 +50,11 @@ class FetchSetupDialog(wx.Dialog):
         remoteIndex = self.remoteChooser.GetSelection()
         self.selectedRemote = self.remoteChoices[remoteIndex]
         self.remoteURLText.SetLabel('URL: %s' % self.repo.remotes[self.selectedRemote])
-        self.sizer.Layout()
+
+        textSize = self.remoteURLText.GetSize()
+        winSize = self.GetClientSize()
+        self.SetClientSize( (max(winSize[0],textSize[0]+20), winSize[1]) )
+        self.Layout()
 
     def OnOk(self, e):
         self.EndModal(1)
