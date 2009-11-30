@@ -3,6 +3,8 @@ import sys
 import os
 import os.path
 import subprocess
+if sys.platform == 'win32':
+    import ctypes
 
 def safe_unicode(s):
     '''Creates unicode object from string s.
@@ -90,10 +92,26 @@ def is_binary_file(file):
 
     return False
 
+PROCESS_TERMINATE = 1
+def kill_subprocess(process):
+    if sys.platform == 'win32':
+        handle = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE, False, process.pid)
+        ctypes.windll.kernel32.TerminateProcess(handle, -1)
+        ctypes.windll.kernel32.CloseHandle(handle)
+    else:
+        os.kill(process.pid, 9)
+
 CREATE_NO_WINDOW = 0x08000000
 def Popen(cmd, **args):
+    # Create a subprocess that does not open a new console window
     if sys.platform == 'win32':
-        return subprocess.Popen(cmd, creationflags = CREATE_NO_WINDOW, **args)
+        process = subprocess.Popen(cmd, creationflags = CREATE_NO_WINDOW, **args)
     else:
-        return subprocess.Popen(cmd, **args)
+        process = subprocess.Popen(cmd, **args)
+
+    # Emulate kill() for Python 2.5
+    if 'kill' not in dir(process):
+        process.kill = lambda: kill_subprocess(process)
+
+    return process
 

@@ -4,6 +4,7 @@ import sys
 import subprocess
 import re
 import tempfile
+import threading
 from util import *
 
 FILE_ADDED       = 'A'
@@ -100,7 +101,7 @@ def detect_mergetool():
     # Return error if no tool was found
     raise GitError, "Cannot detect any merge tool"
 
-def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False, input=None, env={}):
+def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False, input=None, env={}, run_bg=False):
     # Check args
     if type(args) in [str, unicode]:
         args = [args]
@@ -124,6 +125,8 @@ def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False,
     p = Popen([git_binary()] + args, stdout=subprocess.PIPE,
               stderr=subprocess.PIPE, stdin=subprocess.PIPE,
               env=git_env, shell=False)
+    if run_bg:
+        return p
 
     if input == None:
         stdout,stderr = p.communicate('')
@@ -168,10 +171,14 @@ class Repository(object):
             
         self.dir = repodir
 
-        # Origin URL
+        # Remotes
         self.config = ConfigFile(os.path.join(self.dir, '.git', 'config'))
-        self.url = None
         self.url = self.config.get_option('remote', 'origin', 'url')
+
+        self.remotes = {}
+        for remote, opts in self.config.sections_for_type('remote'):
+            if 'url' in opts:
+                self.remotes[remote] = opts['url']
 
         # Run a git status to see whether this is really a git repository
         retcode,output = self.run_cmd(['status'], with_retcode=True)
@@ -476,6 +483,13 @@ class Repository(object):
         except OSError:
             raise GitError, "Write error:\nCannot write into .git/HEAD"
 
+    def fetch_bg(self, remote, callbackFunc):
+        url = self.remotes[remote]
+        t = FetchThread(self, remote, callbackFunc)
+        t.start()
+
+        return t
+
 class Commit(object):
     def __init__(self, repo):
         self.repo = repo
@@ -583,6 +597,127 @@ class ConfigFile(object):
             return opts.get(option)
         else:
             return None
+
+FETCH_CONNECTED     = 0
+FETCH_COUNTING      = 1
+FETCH_COMPRESSING   = 2
+FETCH_RECEIVING     = 3
+FETCH_RESOLVING     = 4
+FETCH_ENDED         = 5
+class FetchThread(threading.Thread):
+    def __init__(self, repo, remote, callback_func):
+        threading.Thread.__init__(self)
+
+        # Parameters
+        self.repo = repo
+        self.remote = remote
+        self.callback_func = callback_func
+
+        # Regular expressions for progress indicator
+        self.counting_expr      = re.compile(r'.*Counting objects:\s*([0-9]+)')
+        self.compressing_expr   = re.compile(r'.*Compressing objects:\s*([0-9]+)%')
+        self.receiving_expr     = re.compile(r'.*Receiving objects:\s*([0-9]+)%')
+        self.resolving_expr     = re.compile(r'.*Resolving deltas:\s*([0-9]+)%')
+
+        self.progress_exprs = (
+            (self.counting_expr, FETCH_COUNTING),
+            (self.compressing_expr, FETCH_COMPRESSING),
+            (self.receiving_expr, FETCH_RECEIVING),
+            (self.resolving_expr, FETCH_RESOLVING)
+        )
+
+        # Regular expressions for remote refs
+        self.branches = {}
+        self.tags = {}
+        self.branch_expr    = re.compile(r'([0-9a-f]{40}) refs\/heads\/([a-zA-Z0-9_.\-]+)')
+        self.tag_expr       = re.compile(r'([0-9a-f]{40}) refs\/tags\/([a-zA-Z0-9_.\-]+)')
+
+        self.ref_exprs = (
+            (self.branch_expr, self.branches),
+            (self.tag_expr, self.tags)
+        )
+
+    def run(self):
+        # Initial state
+        self.connected = False
+        self.error_msg = 'Unknown error occured'
+        self.aborted = False
+
+        # Run git
+        env = {'SSH_ASKPASS': '/opt/local/libexec/git-core/git-gui--askpass'}
+        self.process = self.repo.run_cmd(['fetch-pack', '-v', '--all', self.repo.remotes[self.remote]], run_bg=True, env=env)
+        self.process.stdin.close()
+
+        # Read stdout from a different thread (select.select() does not work
+        # properly on Windows)
+        stdout_thread = threading.Thread(target=self.read_stdout, args=[self.process.stdout], kwargs={})
+        stdout_thread.start()
+
+        # Read lines
+        line = ''
+        c = self.process.stderr.read(1)
+        while c:
+            if c in ['\n', '\r']:
+                self.parse_line(line)
+                line = ''
+            else:
+                line += c
+
+            if self.process.poll() != None: break
+            c = self.process.stderr.read(1)
+
+        self.process.wait()
+        stdout_thread.join()
+
+        # Remaining line
+        if line:
+            self.parse_line(line)
+
+        # Report end of operation
+        if self.aborted:
+            return
+        elif self.process.returncode == 0:
+            # Update remote branches
+            for branch, sha1 in self.branches.iteritems():
+                self.repo.run_cmd(['update-ref', 'refs/remotes/%s/%s' % (self.remote, branch), sha1])
+
+            self.callback_func(FETCH_ENDED, (self.branches, self.tags))
+        else:
+            self.callback_func(FETCH_ENDED, self.error_msg)
+
+    def parse_line(self, line):
+        # Connection established
+        if not self.connected and line.startswith('want '):
+            self.callback_func(FETCH_CONNECTED, None)
+            self.connected = True
+
+        # Progress indicators
+        for reg, event in self.progress_exprs:
+            m = reg.match(line)
+            if m:
+                self.callback_func(event, int(m.group(1)))
+
+        # Remote refs
+        for reg, refs in self.ref_exprs:
+            m = reg.match(line)
+            if m:
+                refs[m.group(2)] = m.group(1)
+
+        # Fatal error
+        if line.startswith('fatal:'):
+            self.error_msg = line
+
+    def read_stdout(self, stdout):
+        lines = stdout.read().split('\n')
+        for line in lines:
+            self.parse_line(line)
+
+    def abort(self):
+        self.aborted = True
+        try:
+            self.process.kill()
+        except:
+            pass
 
 # Utility functions
 def diff_for_untracked_file(filename):
