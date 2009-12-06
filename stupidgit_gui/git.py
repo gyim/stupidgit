@@ -489,9 +489,9 @@ class Repository(object):
         except OSError:
             raise GitError, "Write error:\nCannot write into .git/HEAD"
 
-    def fetch_bg(self, remote, callbackFunc):
+    def fetch_bg(self, remote, callbackFunc, fetch_tags=False):
         url = self.remotes[remote]
-        t = FetchThread(self, remote, callbackFunc)
+        t = FetchThread(self, remote, callbackFunc, fetch_tags)
         t.start()
 
         return t
@@ -611,13 +611,14 @@ FETCH_RECEIVING     = 3
 FETCH_RESOLVING     = 4
 FETCH_ENDED         = 5
 class FetchThread(threading.Thread):
-    def __init__(self, repo, remote, callback_func):
+    def __init__(self, repo, remote, callback_func, fetch_tags=False):
         threading.Thread.__init__(self)
 
         # Parameters
         self.repo = repo
         self.remote = remote
         self.callback_func = callback_func
+        self.fetch_tags = fetch_tags
 
         # Regular expressions for progress indicator
         self.counting_expr      = re.compile(r'.*Counting objects:\s*([0-9]+)')
@@ -685,6 +686,11 @@ class FetchThread(threading.Thread):
             # Update remote branches
             for branch, sha1 in self.branches.iteritems():
                 self.repo.run_cmd(['update-ref', 'refs/remotes/%s/%s' % (self.remote, branch), sha1])
+
+            # Update tags
+            if self.fetch_tags:
+                for tag, sha1 in self.tags.iteritems():
+                    self.repo.run_cmd(['update-ref', 'refs/tags/%s' % tag, sha1])
 
             self.callback_func(FETCH_ENDED, (self.branches, self.tags))
         else:

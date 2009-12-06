@@ -259,7 +259,7 @@ class HistoryTab(wx.Panel):
 
         # Progress dialog
         if result:
-            progressDialog = FetchProgressDialog(self, -1, self.repo, setupDialog.selectedRemote, setupDialog.includeSubmodules)
+            progressDialog = FetchProgressDialog(self, -1, self.repo, setupDialog.selectedRemote, setupDialog.includeSubmodules, setupDialog.fetchTags)
             if progressDialog.ShowModal():
                 self.mainWindow.ReloadRepo()
 

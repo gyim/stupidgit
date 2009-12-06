@@ -43,6 +43,12 @@ class FetchSetupDialog(wx.Dialog):
         else:
             self.includeSubmodules = False
 
+        # Fetch tags
+        self.tagsChk = wx.CheckBox(self, -1, label='Fetch remote tags')
+        self.tagsChk.Bind(wx.EVT_CHECKBOX, self.OnTagsCheck)
+        self.sizer.Add(self.tagsChk, 0, wx.ALL, 5)
+        self.fetchTags = False
+
         self.OnRemoteChosen(None)
 
         # Buttons
@@ -62,11 +68,18 @@ class FetchSetupDialog(wx.Dialog):
     def OnRemoteChosen(self, e):
         remoteIndex = self.remoteChooser.GetSelection()
         self.selectedRemote = self.remoteChoices[remoteIndex]
+
+        # Update labels
         self.remoteURLText.SetLabel('URL: %s' % self.repo.remotes[self.selectedRemote])
 
         if self.repo.submodules:
             self.submoduleChk.SetLabel('Also fetch submodule commits from remote "%s"' % self.selectedRemote)
 
+        # Fetch tags by default if the remote name is 'origin'
+        self.fetchTags = (self.selectedRemote == 'origin')
+        self.tagsChk.SetValue(self.fetchTags)
+
+        # Update window size
         textSize = self.remoteURLText.GetSize()
         winSize = self.GetClientSize()
         self.SetClientSize( (max(winSize[0],textSize[0]+20), winSize[1]) )
@@ -75,6 +88,9 @@ class FetchSetupDialog(wx.Dialog):
     def OnSubmoduleCheck(self, e):
         self.includeSubmodules = self.submoduleChk.GetValue()
 
+    def OnTagsCheck(self, e):
+        self.fetchTags = self.tagsChk.GetValue()
+
     def OnOk(self, e):
         self.EndModal(1)
 
@@ -82,11 +98,12 @@ class FetchSetupDialog(wx.Dialog):
         self.EndModal(0)
 
 class FetchProgressDialog(wx.Dialog):
-    def __init__(self, parent, id, repo, remote, includeSubmodules):
+    def __init__(self, parent, id, repo, remote, includeSubmodules, fetchTags):
         wx.Dialog.__init__(self, parent, id)
         self.repo = repo
         self.remote = remote
         self.includeSubmodules = includeSubmodules
+        self.fetchTags = fetchTags
 
         # Repositories
         self.repos = [ repo ]
@@ -153,7 +170,7 @@ class FetchProgressDialog(wx.Dialog):
 
         self.progressText.SetLabel('Connecting to remote repository...')
         self.progressBar.Pulse()
-        self.fetchThread = repo.fetch_bg(self.remote, self.ProgressCallback)
+        self.fetchThread = repo.fetch_bg(self.remote, self.ProgressCallback, self.fetchTags)
         self.repoIndex += 1
 
     def ProgressCallback(self, event, param):
