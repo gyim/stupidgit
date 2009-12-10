@@ -159,7 +159,7 @@ class Repository(object):
         try:
             while not os.path.isdir(os.path.join(repodir, '.git')):
                 new_repodir = os.path.abspath(os.path.join(repodir, '..'))
-                if new_repodir == repodir:
+                if new_repodir == repodir or new_repodir == parent.dir:
                     raise GitError, "Directory is not a git repository"
                 else:
                     repodir = new_repodir
