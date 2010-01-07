@@ -20,7 +20,7 @@ def main_normal():
     except GitError:
         repo = None
     app = wx.PySimpleApp()
-    win = MainWindow(None, -1, repo)
+    win = MainWindow(repo)
     win.Show(True)
     app.MainLoop()
 

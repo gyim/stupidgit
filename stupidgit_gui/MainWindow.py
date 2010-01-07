@@ -3,6 +3,8 @@ from git import *
 from HistoryTab import HistoryTab
 from IndexTab import IndexTab
 import wx
+from wx import xrc
+from wxutil import *
 
 STUPIDGIT_VERSION = "v0.1.1"
 
@@ -40,54 +42,47 @@ OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 '''
 
-class MainWindow(wx.Frame):
-    def __init__(self, parent, id, repo):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, "stupidgit", size=(550,600))
-        app_windows.append(self)
+class MainWindow(object):
+    def __init__(self, repo):
+        # Load frame from XRC
+        self.frame = LoadFrame(None, 'MainWindow')
+        self.frame.SetSize((550,600))
+        app_windows.append(self.frame)
 
-        self.CreateMenu()
-        self.Bind(wx.EVT_CLOSE, self.OnClose)
+        # Setup events
+        SetupEvents(self.frame, [
+            (None, wx.EVT_CLOSE, self.OnWindowClosed),
 
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.sizer)
+            ('quitMenuItem', wx.EVT_MENU, self.OnExit),
+            ('openMenuItem', wx.EVT_MENU, self.OnOpenRepository),
+            ('newWindowMenuItem', wx.EVT_MENU, self.OnNewWindow),
+            ('closeWindowMenuItem', wx.EVT_MENU, self.OnCloseWindow),
+            ('aboutMenuItem', wx.EVT_MENU, self.OnAbout),
 
-        if repo:
-            self.emptyText = None
-            self.SetMainRepo(repo)
-        else:
-            self.mainRepo = None
-            self.currentRepo = None
-            self.CreateEmptyText()
+            ('moduleChoice', wx.EVT_CHOICE, self.OnModuleChosen),
+            ('refreshButton', wx.EVT_BUTTON, self.OnRefresh),
+        ])
+        
+        # Setup tabs
+        self.historyTab = HistoryTab(self)
+        self.indexTab = IndexTab(self)
 
-    def CreateMenu(self):
-        filemenu = wx.Menu()
-        filemenu.Append(ID_NEWWINDOW, "&New window\tCtrl-N", "Open new window")
-        filemenu.AppendSeparator()
-        filemenu.Append(wx.ID_OPEN)
-        filemenu.AppendSeparator()
-        filemenu.Append(wx.ID_EXIT)
+        # Load repository
+        self.SetMainRepo(repo)
 
-        windowmenu = wx.Menu()
-        windowmenu.Append(ID_CLOSEWINDOW, "Close &Window\tCtrl-W")
-
-        helpmenu = wx.Menu()
-        helpmenu.Append(wx.ID_ABOUT, "&About", "About stupidgit")
-
-        menubar = wx.MenuBar()
-        menubar.Append(filemenu, "&File")
-        menubar.Append(windowmenu, "&Window")
-        menubar.Append(helpmenu, "&Help")
-        self.SetMenuBar(menubar)
-
-        wx.EVT_MENU(self, ID_NEWWINDOW, self.OnNewWindow)
-        wx.EVT_MENU(self, ID_CLOSEWINDOW, lambda e: self.Close(True))
-        wx.EVT_MENU(self, wx.ID_OPEN, self.OnOpenRepository)
-        wx.EVT_MENU(self, wx.ID_EXIT, self.OnExit)
-        wx.EVT_MENU(self, wx.ID_ABOUT, self.OnAbout)
+    def Show(self, doShow=True):
+        self.frame.Show(doShow)
 
     def OnNewWindow(self, e):
-        win = MainWindow(None, -1, None)
+        win = MainWindow(None)
         win.Show(True)
+
+    def OnCloseWindow(self, e):
+        self.frame.Close()
+
+    def OnWindowClosed(self, e):
+        app_windows.remove(self.frame)
+        self.frame.Destroy()
 
     def OnOpenRepository(self, e):
         repodir = wx.DirSelector("Open repository")
@@ -97,7 +92,7 @@ class MainWindow(wx.Frame):
             repo = Repository(repodir)
 
             if self.mainRepo:
-                new_win = MainWindow(None, -1, repo)
+                new_win = MainWindow(repo)
                 new_win.Show(True)
             else:
                 self.SetMainRepo(repo)
@@ -114,71 +109,27 @@ class MainWindow(wx.Frame):
 
         wx.AboutBox(info)
 
-    def OnClose(self, e):
-        app_windows.remove(self)
-        self.Destroy()
-
     def OnExit(self, e):
         while app_windows:
             app_windows[0].Close(True)
 
-    def CreateRepoControls(self):
-        if self.emptyText:
-            self.emptyText.Destroy()
-
-        # Top panel
-        self.topPanel = wx.Panel(self, -1)
-        self.sizer.Add(self.topPanel, 0, wx.EXPAND)
-        topSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.topPanel.SetSizer(topSizer)
-
-        self.moduleLbl = wx.StaticText(self.topPanel, -1, 'Module:')
-        topSizer.Add(self.moduleLbl, 0, wx.ALIGN_CENTRE_VERTICAL | wx.ALL, 5)
-
-        # Module chooser
-        module_choices = [s.name for s in self.mainRepo.all_modules]
-        self.moduleChooser = wx.Choice(self.topPanel, -1, choices=module_choices)
-        topPadding = 4 if sys.platform == 'darwin' else 0
-        topSizer.Add(self.moduleChooser, 1, wx.ALIGN_CENTRE_VERTICAL | wx.TOP, topPadding)
-        self.moduleChooser.Select(0)
-        self.Bind(wx.EVT_CHOICE, self.OnModuleChosen, self.moduleChooser)
-
-        self.refreshBtn = wx.Button(self.topPanel, -1, 'Refresh')
-        topSizer.Add(self.refreshBtn, 0, wx.ALIGN_CENTRE_VERTICAL | wx.LEFT | wx.RIGHT, 5)
-        self.Bind(wx.EVT_BUTTON, self.OnRefresh, self.refreshBtn)
-
-        # Notebook
-        self.pageChooser = wx.Notebook(self, -1)
-        self.sizer.Add(self.pageChooser, 1, wx.EXPAND)
-
-        # History page
-        self.historyTab = HistoryTab(self, self.pageChooser, -1)
-        self.pageChooser.AddPage(self.historyTab, "History")
-
-        # Index tab
-        self.indexTab = IndexTab(self, self.pageChooser, -1)
-        self.pageChooser.AddPage(self.indexTab, "Index")
-
-        self.pageChooser.ChangeSelection(0)
-
-        self.SetRepo(self.mainRepo)
-        self.sizer.Layout()
-
-    def CreateEmptyText(self):
-        self.emptyText = wx.StaticText(self, -1, 'Welcome to stupidgit!\n\nYou can open a repository in the File menu.')
-        self.sizer.Add(self.emptyText, 1, wx.EXPAND | wx.ALL, 10)
-
     def SetMainRepo(self, repo):
         self.mainRepo = repo
-        self.currentRepo = repo
 
         if repo:
             title = "stupidgit - %s" % os.path.basename(repo.dir)
+
+            moduleChoice = GetWidget(self.frame, 'moduleChoice')
+            for module in self.mainRepo.all_modules:
+                moduleChoice.Append(module.name)
+            moduleChoice.Select(0)
+            self.SetRepo(repo)
+
         else:
             title = "stupidgit"
+            self.currentRepo = None
 
-        self.SetTitle(title)
-        self.CreateRepoControls()
+        self.frame.SetTitle(title)
 
     def SetRepo(self, repo):
         self.currentRepo = repo

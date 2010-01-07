@@ -9,6 +9,7 @@ from FetchDialogs import FetchSetupDialog, FetchProgressDialog
 import git
 from git import GitError
 from util import *
+from wxutil import *
 
 # Menu item ids
 MENU_SWITCH_TO_COMMIT   = 10000
@@ -24,36 +25,39 @@ MENU_DELETE_BRANCH      = 12000
 # that refer to a branch
 branch_indexes = []
 
-class HistoryTab(wx.Panel):
-    def __init__(self, mainWindow, parent, id):
-        # Layout
-        wx.Panel.__init__(self, parent, id)
-        self.mainWindow = mainWindow
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.sizer)
-
+class HistoryTab(object):
+    def __init__(self, mainController):
+        self.mainController = mainController
+        self.mainWindow = self.mainController.frame
+        
+        # Commit list
+        browserPanel = GetWidget(self.mainWindow, 'historyBrowserPanel')
+        browserSizer = browserPanel.GetSizer()
+        
+        self.commitList = CommitList(browserPanel, -1, False)
+        self.commitList.Bind(EVT_COMMITLIST_SELECT, self.OnCommitSelected, self.commitList)
+        self.commitList.Bind(EVT_COMMITLIST_RIGHTCLICK, self.OnCommitRightClick, self.commitList)
+        browserSizer.Add(self.commitList, 1, wx.EXPAND)
+        
+        # Diff viewer
+        diffPanel = GetWidget(self.mainWindow, "historyDiffPanel")
+        diffSizer = diffPanel.GetSizer()
+        
+        self.diffViewer = DiffViewer(diffPanel, -1)
+        diffSizer.Add(self.diffViewer, 1, wx.EXPAND)
+        
         # Splitter
-        self.splitter = wx.SplitterWindow(self, -1, style=wx.SP_LIVE_UPDATE)
-        self.sizer.Add(self.splitter, True, wx.EXPAND, wx.ALL)
-
-        # History graph
-        self.commitList = CommitList(self.splitter, -1)
-        self.Bind(EVT_COMMITLIST_SELECT, self.OnCommitSelected, self.commitList)
-        self.Bind(EVT_COMMITLIST_RIGHTCLICK, self.OnCommitRightClick, self.commitList)
-
-        self.diffViewer = DiffViewer(self.splitter, -1)
-
-        self.splitter.SetMinimumPaneSize(20)
-        self.splitter.SplitHorizontally(self.commitList, self.diffViewer, 200)
+        splitter = GetWidget(self.mainWindow, "historySplitter")
+        splitter.SetSashPosition(200)
 
         # Context menu
         self.contextMenu = wx.Menu()
-        wx.EVT_MENU(self, MENU_SWITCH_TO_COMMIT, self.OnSwitchToCommit)
-        wx.EVT_MENU(self, MENU_CREATE_BRANCH, self.OnCreateBranch)
-        wx.EVT_MENU(self, MENU_MERGE_COMMIT, self.OnMerge)
-        wx.EVT_MENU(self, MENU_CHERRYPICK_COMMIT, self.OnCherryPick)
-        wx.EVT_MENU(self, MENU_REVERT_COMMIT, self.OnRevert)
-        wx.EVT_MENU(self, MENU_FETCH_COMMITS, self.OnFetch)
+        wx.EVT_MENU(self.mainWindow, MENU_SWITCH_TO_COMMIT, self.OnSwitchToCommit)
+        wx.EVT_MENU(self.mainWindow, MENU_CREATE_BRANCH, self.OnCreateBranch)
+        wx.EVT_MENU(self.mainWindow, MENU_MERGE_COMMIT, self.OnMerge)
+        wx.EVT_MENU(self.mainWindow, MENU_CHERRYPICK_COMMIT, self.OnCherryPick)
+        wx.EVT_MENU(self.mainWindow, MENU_REVERT_COMMIT, self.OnRevert)
+        wx.EVT_MENU(self.mainWindow, MENU_FETCH_COMMITS, self.OnFetch)
 
     def SetRepo(self, repo):
         # Branch indexes
@@ -64,7 +68,7 @@ class HistoryTab(wx.Panel):
 
         # Menu events for branches
         for index in xrange(len(branch_indexes)):
-            wx.EVT_MENU(self, MENU_DELETE_BRANCH + index, self.OnDeleteBranch)
+            wx.EVT_MENU(self.mainWindow, MENU_DELETE_BRANCH + index, self.OnDeleteBranch)
 
         self.repo = repo
         self.commitList.SetRepo(repo)
@@ -89,7 +93,7 @@ class HistoryTab(wx.Panel):
         result = wizard.RunWizard()
 
         if result > 0:
-            self.mainWindow.ReloadRepo()
+            self.mainController.ReloadRepo()
 
             # Check for unmerged changes
             unmerged = False
@@ -174,7 +178,7 @@ class HistoryTab(wx.Panel):
         )
         if msg.ShowModal() == wx.ID_OK:
             retcode, stdout, stderr = self.repo.run_cmd(['merge', self.contextCommit.sha1, '-m', mergeMsg], with_retcode=True, with_stderr=True)
-            self.mainWindow.ReloadRepo()
+            self.mainController.ReloadRepo()
 
             if retcode != 0:
                 if 'CONFLICT' in stdout:
@@ -210,7 +214,7 @@ class HistoryTab(wx.Panel):
         )
         if msg.ShowModal() == wx.ID_YES:
             retcode, stdout, stderr = self.repo.run_cmd(['cherry-pick', self.contextCommit.sha1], with_retcode=True, with_stderr=True)
-            self.mainWindow.ReloadRepo()
+            self.mainController.ReloadRepo()
 
             if retcode != 0:
                 if 'Automatic cherry-pick failed' in stderr:
@@ -236,7 +240,7 @@ class HistoryTab(wx.Panel):
         )
         if msg.ShowModal() == wx.ID_YES:
             retcode, stdout, stderr = self.repo.run_cmd(['revert', self.contextCommit.sha1], with_retcode=True, with_stderr=True)
-            self.mainWindow.ReloadRepo()
+            self.mainController.ReloadRepo()
 
             if retcode != 0:
                 if 'Automatic reverting failed' in stderr:
@@ -261,7 +265,7 @@ class HistoryTab(wx.Panel):
         if result:
             progressDialog = FetchProgressDialog(self, -1, self.repo, setupDialog.selectedRemote, setupDialog.includeSubmodules, setupDialog.fetchTags)
             if progressDialog.ShowModal():
-                self.mainWindow.ReloadRepo()
+                self.mainController.ReloadRepo()
 
     def OnFetchProgress(self, eventType, eventParam):
         print 'FETCH CALLBACK:', eventType, eventParam
@@ -304,7 +308,7 @@ class HistoryTab(wx.Panel):
     def GitCommand(self, cmd, check_submodules=False, **opts):
         try:
             retval = self.repo.run_cmd(cmd, raise_error=True, **opts)
-            self.mainWindow.ReloadRepo()
+            self.mainController.ReloadRepo()
 
             # Check submodules
             if check_submodules and self.repo.submodules:

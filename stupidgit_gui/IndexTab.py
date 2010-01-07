@@ -10,6 +10,7 @@ import Wizard
 from DiffViewer import DiffViewer
 from git import *
 from util import *
+from wxutil import *
 
 MOD_DESCS = {
     FILE_ADDED       : 'added',
@@ -48,94 +49,59 @@ class FileList(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlSelectionManagerMix)
     def GetSelections(self):
         return [ i for i in xrange(self.GetItemCount()) if self.GetItemState(i, wx.LIST_STATE_SELECTED) == wx.LIST_STATE_SELECTED ]
 
-class IndexTab(wx.Panel):
-    def __init__(self, mainWindow, parent, id):
-        wx.Panel.__init__(self, parent, id)
-        self.mainWindow = mainWindow
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.sizer)
+class IndexTab(object):
+    def __init__(self, mainController):
+        self.mainController = mainController
+        self.mainWindow = mainController.frame
         
         # Splitter
-        self.splitter = wx.SplitterWindow(self, -1, style=wx.SP_LIVE_UPDATE)
-        self.sizer.Add(self.splitter, True, wx.EXPAND, wx.ALL)
-
-        # Top panel
-        self.topPanel = wx.Panel(self.splitter, -1)
-        self.topSizer = wx.BoxSizer(wx.VERTICAL)
-        self.topPanel.SetSizer(self.topSizer)
-
-        # --- File lists ---
-        self.listRow = wx.BoxSizer(wx.HORIZONTAL)
-        self.topSizer.Add(self.listRow, 1, wx.EXPAND)
-
-        # Unstaged changes
-        self.unstagedBox = wx.StaticBox(self.topPanel, -1, "Unstaged changes")
-        self.unstagedBoxSizer = wx.StaticBoxSizer(self.unstagedBox, wx.VERTICAL)
-        self.listRow.Add(self.unstagedBoxSizer, 1, wx.EXPAND | wx.RIGHT, 10)
-
-        self.unstagedList = FileList(self.topPanel, -1)
-        self.unstagedBoxSizer.Add(self.unstagedList, 1, wx.EXPAND|wx.ALL, 0)
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnUnstagedListSelect, self.unstagedList)
-        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnUnstagedRightClick, self.unstagedList)
+        splitter = GetWidget(self.mainWindow, 'indexSplitter')
+        splitter.SetSashPosition(200)
+        splitter.SetMinimumPaneSize(120)
+        
+        # Unstaged list
+        unstagedPanel = GetWidget(self.mainWindow, 'unstagedListPanel')
+        unstagedSizer = unstagedPanel.GetSizer()
+        
+        self.unstagedList = FileList(unstagedPanel, -1)
+        unstagedSizer.Add(self.unstagedList, 1, wx.EXPAND|wx.ALL, 0)
+        self.unstagedList.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnUnstagedListSelect, self.unstagedList)
+        self.unstagedList.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnUnstagedRightClick, self.unstagedList)
+        unstagedPanel.Layout()  
 
         self.unstagedMenu = wx.Menu()
         self.unstagedMenu.Append(MENU_MERGE_FILE, "Merge file")
         self.unstagedMenu.Append(MENU_TAKE_LOCAL, "Take local version")
         self.unstagedMenu.Append(MENU_TAKE_REMOTE, "Take remote version")
-        wx.EVT_MENU(self, MENU_MERGE_FILE, self.OnMergeFile)
-        wx.EVT_MENU(self, MENU_TAKE_LOCAL, self.OnTakeLocal)
-        wx.EVT_MENU(self, MENU_TAKE_REMOTE, self.OnTakeRemote)
-
-        # Stage/unstage/discard buttons
-        self.actionButtons = wx.BoxSizer(wx.VERTICAL)
-        self.listRow.Add(self.actionButtons, 0, wx.BOTTOM, 5)
-
-        self.stageButton = wx.Button(self.topPanel, -1, LABEL_STAGE)
-        self.unstageButton = wx.Button(self.topPanel, -1, LABEL_UNSTAGE)
-        self.discardButton = wx.Button(self.topPanel, -1, LABEL_DISCARD)
-
-        self.Bind(wx.EVT_BUTTON, self.OnStage, self.stageButton)
-        self.Bind(wx.EVT_BUTTON, self.OnUnstage, self.unstageButton)
-        self.Bind(wx.EVT_BUTTON, self.OnDiscard, self.discardButton)
-
-        self.actionButtons.Add(self.stageButton, 0, wx.EXPAND | wx.TOP, 20)
-        self.actionButtons.Add(self.unstageButton, 0, wx.EXPAND | wx.TOP, 5)
-        self.actionButtons.Add(self.discardButton, 0, wx.EXPAND | wx.TOP, 20)
+        wx.EVT_MENU(self.unstagedList, MENU_MERGE_FILE, self.OnMergeFile)
+        wx.EVT_MENU(self.unstagedList, MENU_TAKE_LOCAL, self.OnTakeLocal)
+        wx.EVT_MENU(self.unstagedList, MENU_TAKE_REMOTE, self.OnTakeRemote)
 
         # Staged changes
-        self.stagedBox = wx.StaticBox(self.topPanel, -1, "Staged changes")
-        self.stagedBoxSizer = wx.StaticBoxSizer(self.stagedBox, wx.VERTICAL)
-        self.listRow.Add(self.stagedBoxSizer, 1, wx.EXPAND | wx.LEFT, 10)
-
-        self.stagedList = FileList(self.topPanel, -1)
-        self.stagedBoxSizer.Add(self.stagedList, 1, wx.EXPAND|wx.ALL, 0)
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnStagedListSelect, self.stagedList)
-
-        # Bottom panel
-        self.bottomPanel = wx.Panel(self.splitter, -1)
-        self.bottomSizer = wx.BoxSizer(wx.VERTICAL)
-        self.bottomPanel.SetSizer(self.bottomSizer)
+        stagedPanel = GetWidget(self.mainWindow, 'stagedListPanel')
+        stagedSizer = stagedPanel.GetSizer()
+        
+        self.stagedList = FileList(stagedPanel, -1)
+        stagedSizer.Add(self.stagedList, 1, wx.EXPAND|wx.ALL, 0)
+        self.stagedList.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnStagedListSelect, self.stagedList)
+        stagedPanel.Layout()
 
         # Diff viewer
-        self.diffViewer = DiffViewer(self.bottomPanel, -1)
-        self.bottomSizer.Add(self.diffViewer, 1, wx.EXPAND)
+        diffPanel = GetWidget(self.mainWindow, 'indexDiffPanel')
+        diffSizer = diffPanel.GetSizer()
 
-        # Commit / discard buttons
-        self.bottomButtons = wx.BoxSizer(wx.HORIZONTAL)
-        self.bottomSizer.Add(self.bottomButtons, 0, wx.TOP | wx.BOTTOM, 5)
-
-        self.commitButton = wx.Button(self.bottomPanel, -1, "Commit staged changes")
-        self.resetButton = wx.Button(self.bottomPanel, -1, "Discard all changes")
-
-        self.Bind(wx.EVT_BUTTON, self.OnCommit, self.commitButton)
-        self.Bind(wx.EVT_BUTTON, self.OnReset, self.resetButton)
-
-        self.bottomButtons.Add(self.commitButton, 0, wx.LEFT, 5)
-        self.bottomButtons.Add(self.resetButton, 0, wx.LEFT, 5)
-
-        # Split window
-        self.splitter.SetMinimumPaneSize(120)
-        self.splitter.SplitHorizontally(self.topPanel, self.bottomPanel, 200)
+        self.diffViewer = DiffViewer(diffPanel, -1)
+        diffSizer.Add(self.diffViewer, 1, wx.EXPAND)
+        diffPanel.Layout()
+        
+        # Events
+        SetupEvents(self.mainWindow, [
+            ('stageButton', wx.EVT_BUTTON, self.OnStage),
+            ('unstageButton', wx.EVT_BUTTON, self.OnUnstage),
+            ('discardButton', wx.EVT_BUTTON, self.OnDiscard),
+            ('commitButton', wx.EVT_BUTTON, self.OnCommit),
+            ('discardAllButton', wx.EVT_BUTTON, self.OnReset)
+        ])
 
     def OnStage(self, e):
         for row in self.unstagedList.GetSelections():
@@ -234,7 +200,7 @@ class IndexTab(wx.Panel):
         # Show commit wizard
         commit_wizard = CommitWizard(self.mainWindow, -1, self.repo)
         commit_wizard.RunWizard()
-        self.mainWindow.SetRepo(self.repo)
+        self.mainController.SetRepo(self.repo)
 
     def OnReset(self, e):
         msg = wx.MessageDialog(
