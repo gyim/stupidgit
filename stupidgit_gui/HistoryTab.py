@@ -135,7 +135,7 @@ class HistoryTab(object):
                 wx.MessageBox(msg, 'Warning', style=wx.OK|wx.ICON_ERROR)
 
     def OnCreateBranch(self, e):
-        dialog = wx.TextEntryDialog(self, "Enter branch name:", "Create branch...")
+        dialog = wx.TextEntryDialog(self.mainWindow, "Enter branch name:", "Create branch...")
         if dialog.ShowModal() == wx.ID_OK:
             branch_name = dialog.GetValue()
             self.GitCommand(['branch', branch_name, self.contextCommit.sha1])
@@ -258,7 +258,7 @@ class HistoryTab(object):
 
     def OnFetch(self, e):
         # Setup dialog
-        setupDialog = FetchSetupDialog(self, -1, self.repo)
+        setupDialog = FetchSetupDialog(self.mainWindow, -1, self.repo)
         result = setupDialog.ShowModal()
 
         # Progress dialog
