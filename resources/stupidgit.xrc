@@ -1,1 +1,229 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes" ?><resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">	<object class="wxFrame" name="MainWindow">		<style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>		<size>600,650</size>		<title>StupidGit</title>		<object class="wxBoxSizer">			<orient>wxVERTICAL</orient>			<object class="sizeritem">				<option>0</option>				<flag>wxEXPAND</flag>				<border>5</border>				<object class="wxBoxSizer">					<orient>wxHORIZONTAL</orient>					<object class="sizeritem">						<option>0</option>						<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>						<border>5</border>						<object class="wxStaticText" name="m_staticText1">							<size>-1,20</size>							<label>Module: </label>						</object>					</object>					<object class="sizeritem">						<option>1</option>						<flag>wxALIGN_CENTER_VERTICAL|wxALL|wxEXPAND</flag>						<border>5</border>						<object class="wxChoice" name="moduleChoice">							<selection>0</selection>							<content />						</object>					</object>					<object class="sizeritem">						<option>0</option>						<flag>wxALL</flag>						<border>5</border>						<object class="wxButton" name="refreshButton">							<label>Refresh</label>							<default>0</default>						</object>					</object>				</object>			</object>			<object class="sizeritem">				<option>1</option>				<flag>wxEXPAND | wxALL</flag>				<border>5</border>				<object class="wxNotebook" name="tabs">					<object class="notebookpage">						<label>History</label>						<selected>0</selected>						<object class="wxPanel" name="historyTab">							<style>wxTAB_TRAVERSAL</style>							<object class="wxBoxSizer">								<orient>wxVERTICAL</orient>								<object class="sizeritem">									<option>1</option>									<flag>wxEXPAND</flag>									<border>5</border>									<object class="wxSplitterWindow" name="historySplitter">										<style>wxSP_LIVE_UPDATE</style>										<sashpos>200</sashpos>										<gravity>0</gravity>										<minsize>0</minsize>										<orientation>horizontal</orientation>										<object class="wxPanel" name="historyBrowserPanel">											<style>wxTAB_TRAVERSAL</style>											<object class="wxBoxSizer">												<orient>wxVERTICAL</orient>											</object>										</object>										<object class="wxPanel" name="historyDiffPanel">											<style>wxTAB_TRAVERSAL</style>											<object class="wxBoxSizer">												<orient>wxVERTICAL</orient>											</object>										</object>									</object>								</object>							</object>						</object>					</object>					<object class="notebookpage">						<label>Index</label>						<selected>0</selected>						<object class="wxPanel" name="indexTab">							<style>wxTAB_TRAVERSAL</style>							<object class="wxBoxSizer">								<orient>wxVERTICAL</orient>								<object class="sizeritem">									<option>1</option>									<flag>wxEXPAND</flag>									<border>5</border>									<object class="wxSplitterWindow" name="indexSplitter">										<style>wxSP_LIVE_UPDATE</style>										<sashpos>200</sashpos>										<gravity>0</gravity>										<minsize>0</minsize>										<orientation>horizontal</orientation>										<object class="wxPanel" name="m_panel3">											<style>wxTAB_TRAVERSAL</style>											<object class="wxBoxSizer">												<orient>wxHORIZONTAL</orient>												<object class="sizeritem">													<option>1</option>													<flag>wxEXPAND | wxALL</flag>													<border>5</border>													<object class="wxPanel" name="unstagedListPanel">														<style>wxTAB_TRAVERSAL</style>														<object class="wxBoxSizer">															<orient>wxVERTICAL</orient>														</object>													</object>												</object>												<object class="sizeritem">													<option>0</option>													<flag>wxEXPAND | wxALL</flag>													<border>5</border>													<object class="wxPanel" name="m_panel5">														<style>wxTAB_TRAVERSAL</style>														<object class="wxBoxSizer">															<orient>wxVERTICAL</orient>															<object class="sizeritem">																<option>0</option>																<flag>wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND</flag>																<border>5</border>																<object class="wxButton" name="stageButton">																	<label>Stage &gt;</label>																	<default>0</default>																</object>															</object>															<object class="sizeritem">																<option>0</option>																<flag>wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND</flag>																<border>5</border>																<object class="wxButton" name="unstageButton">																	<label>Unstage &lt;</label>																	<default>0</default>																</object>															</object>															<object class="spacer">																<option>0</option>																<flag></flag>																<border>5</border>																<size>0,20</size>															</object>															<object class="sizeritem">																<option>0</option>																<flag>wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND</flag>																<border>5</border>																<object class="wxButton" name="discardButton">																	<label>x Discard</label>																	<default>0</default>																</object>															</object>														</object>													</object>												</object>												<object class="sizeritem">													<option>1</option>													<flag>wxEXPAND | wxALL</flag>													<border>5</border>													<object class="wxPanel" name="stagedListPanel">														<style>wxTAB_TRAVERSAL</style>														<object class="wxBoxSizer">															<orient>wxVERTICAL</orient>														</object>													</object>												</object>											</object>										</object>										<object class="wxPanel" name="indexDiffPanel">											<style>wxTAB_TRAVERSAL</style>											<object class="wxBoxSizer">												<orient>wxVERTICAL</orient>											</object>										</object>									</object>								</object>								<object class="sizeritem">									<option>0</option>									<flag>wxEXPAND | wxALL</flag>									<border>5</border>									<object class="wxPanel" name="m_panel8">										<style>wxTAB_TRAVERSAL</style>										<object class="wxBoxSizer">											<orient>wxHORIZONTAL</orient>											<object class="sizeritem">												<option>0</option>												<flag>wxALL</flag>												<border>5</border>												<object class="wxButton" name="commitButton">													<label>Commit staged changes</label>													<default>0</default>												</object>											</object>											<object class="sizeritem">												<option>0</option>												<flag>wxALL</flag>												<border>5</border>												<object class="wxButton" name="discardAllButton">													<label>Discard all changes</label>													<default>0</default>												</object>											</object>										</object>									</object>								</object>							</object>						</object>					</object>				</object>			</object>		</object>		<object class="wxMenuBar" name="menuBar">			<label>StupidGit</label>			<object class="wxMenu" name="fileMenu">				<label>File</label>				<object class="wxMenuItem" name="newWindowMenuItem">					<label>&amp;New Window\tCtrl-N</label>					<help></help>				</object>				<object class="wxMenuItem" name="openMenuItem">					<label>&amp;Open Repository\tCTRL-O</label>					<help></help>				</object>				<object class="separator" />				<object class="wxMenuItem" name="quitMenuItem">					<label>&amp;Quit\tCTRL-Q</label>					<help></help>				</object>			</object>			<object class="wxMenu" name="windowMenu">				<label>Window</label>				<object class="wxMenuItem" name="closeWindowMenuItem">					<label>Close &amp;Window\tCtrl-W</label>					<help></help>				</object>			</object>			<object class="wxMenu" name="helpMenu">				<label>_Help</label>				<object class="wxMenuItem" name="aboutMenuItem">					<label>&amp;About</label>					<help></help>				</object>			</object>		</object>		<object class="wxStatusBar" name="statusBar">			<style>wxST_SIZEGRIP</style>			<fields>1</fields>		</object>	</object></resource>
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
+	<object class="wxFrame" name="MainWindow">
+		<style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>
+		<size>600,650</size>
+		<title>StupidGit</title>
+		<object class="wxToolBar" name="toolbar">
+			<style>wxTB_HORIZONTAL|wxTB_TEXT</style>
+			<bitmapsize></bitmapsize>
+			<margins>-1,-1</margins>
+			<packing>1</packing>
+			<separation>5</separation>
+			<object class="tool" name="refreshTool">
+				<label>Refresh</label>
+				<tooltip></tooltip>
+				<longhelp></longhelp>
+				<bitmap>refresh.png</bitmap>
+			</object>
+			<object class="separator" />
+			<object class="wxChoice" name="moduleChoice">
+				<size>-1,20</size>
+				<selection>0</selection>
+				<content />
+			</object>
+		</object>
+		<object class="wxNotebook" name="tabs">
+			<object class="notebookpage">
+				<label>History</label>
+				<selected>0</selected>
+				<object class="wxPanel" name="historyTab">
+					<style>wxTAB_TRAVERSAL</style>
+					<object class="wxBoxSizer">
+						<orient>wxVERTICAL</orient>
+						<object class="sizeritem">
+							<option>1</option>
+							<flag>wxEXPAND</flag>
+							<border>5</border>
+							<object class="wxSplitterWindow" name="historySplitter">
+								<style>wxSP_LIVE_UPDATE</style>
+								<sashpos>200</sashpos>
+								<gravity>0</gravity>
+								<minsize>0</minsize>
+								<orientation>horizontal</orientation>
+								<object class="wxPanel" name="historyBrowserPanel">
+									<style>wxTAB_TRAVERSAL</style>
+									<object class="wxBoxSizer">
+										<orient>wxVERTICAL</orient>
+									</object>
+								</object>
+								<object class="wxPanel" name="historyDiffPanel">
+									<style>wxTAB_TRAVERSAL</style>
+									<object class="wxBoxSizer">
+										<orient>wxVERTICAL</orient>
+									</object>
+								</object>
+							</object>
+						</object>
+					</object>
+				</object>
+			</object>
+			<object class="notebookpage">
+				<label>Index</label>
+				<selected>0</selected>
+				<object class="wxPanel" name="indexTab">
+					<style>wxTAB_TRAVERSAL</style>
+					<object class="wxBoxSizer">
+						<orient>wxVERTICAL</orient>
+						<object class="sizeritem">
+							<option>1</option>
+							<flag>wxEXPAND</flag>
+							<border>5</border>
+							<object class="wxSplitterWindow" name="indexSplitter">
+								<style>wxSP_LIVE_UPDATE</style>
+								<sashpos>200</sashpos>
+								<gravity>0</gravity>
+								<minsize>0</minsize>
+								<orientation>horizontal</orientation>
+								<object class="wxPanel" name="m_panel3">
+									<style>wxTAB_TRAVERSAL</style>
+									<object class="wxBoxSizer">
+										<orient>wxHORIZONTAL</orient>
+										<object class="sizeritem">
+											<option>1</option>
+											<flag>wxEXPAND | wxALL</flag>
+											<border>5</border>
+											<object class="wxPanel" name="unstagedListPanel">
+												<style>wxTAB_TRAVERSAL</style>
+												<object class="wxBoxSizer">
+													<orient>wxVERTICAL</orient>
+												</object>
+											</object>
+										</object>
+										<object class="sizeritem">
+											<option>0</option>
+											<flag>wxEXPAND | wxALL</flag>
+											<border>5</border>
+											<object class="wxPanel" name="m_panel5">
+												<style>wxTAB_TRAVERSAL</style>
+												<object class="wxBoxSizer">
+													<orient>wxVERTICAL</orient>
+													<object class="sizeritem">
+														<option>0</option>
+														<flag>wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND</flag>
+														<border>5</border>
+														<object class="wxButton" name="stageButton">
+															<label>Stage &gt;</label>
+															<default>0</default>
+														</object>
+													</object>
+													<object class="sizeritem">
+														<option>0</option>
+														<flag>wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND</flag>
+														<border>5</border>
+														<object class="wxButton" name="unstageButton">
+															<label>Unstage &lt;</label>
+															<default>0</default>
+														</object>
+													</object>
+													<object class="spacer">
+														<option>0</option>
+														<flag></flag>
+														<border>5</border>
+														<size>0,20</size>
+													</object>
+													<object class="sizeritem">
+														<option>0</option>
+														<flag>wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND</flag>
+														<border>5</border>
+														<object class="wxButton" name="discardButton">
+															<label>x Discard</label>
+															<default>0</default>
+														</object>
+													</object>
+												</object>
+											</object>
+										</object>
+										<object class="sizeritem">
+											<option>1</option>
+											<flag>wxEXPAND | wxALL</flag>
+											<border>5</border>
+											<object class="wxPanel" name="stagedListPanel">
+												<style>wxTAB_TRAVERSAL</style>
+												<object class="wxBoxSizer">
+													<orient>wxVERTICAL</orient>
+												</object>
+											</object>
+										</object>
+									</object>
+								</object>
+								<object class="wxPanel" name="indexDiffPanel">
+									<style>wxTAB_TRAVERSAL</style>
+									<object class="wxBoxSizer">
+										<orient>wxVERTICAL</orient>
+									</object>
+								</object>
+							</object>
+						</object>
+						<object class="sizeritem">
+							<option>0</option>
+							<flag>wxEXPAND | wxALL</flag>
+							<border>5</border>
+							<object class="wxPanel" name="m_panel8">
+								<style>wxTAB_TRAVERSAL</style>
+								<object class="wxBoxSizer">
+									<orient>wxHORIZONTAL</orient>
+									<object class="sizeritem">
+										<option>0</option>
+										<flag>wxALL</flag>
+										<border>5</border>
+										<object class="wxButton" name="commitButton">
+											<label>Commit staged changes</label>
+											<default>0</default>
+										</object>
+									</object>
+									<object class="sizeritem">
+										<option>0</option>
+										<flag>wxALL</flag>
+										<border>5</border>
+										<object class="wxButton" name="discardAllButton">
+											<label>Discard all changes</label>
+											<default>0</default>
+										</object>
+									</object>
+								</object>
+							</object>
+						</object>
+					</object>
+				</object>
+			</object>
+		</object>
+		<object class="wxMenuBar" name="menuBar">
+			<label>StupidGit</label>
+			<object class="wxMenu" name="fileMenu">
+				<label>File</label>
+				<object class="wxMenuItem" name="newWindowMenuItem">
+					<label>&amp;New Window\tCtrl-N</label>
+					<help></help>
+				</object>
+				<object class="wxMenuItem" name="openMenuItem">
+					<label>&amp;Open Repository\tCTRL-O</label>
+					<help></help>
+				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="quitMenuItem">
+					<label>&amp;Quit\tCTRL-Q</label>
+					<help></help>
+				</object>
+			</object>
+			<object class="wxMenu" name="windowMenu">
+				<label>Window</label>
+				<object class="wxMenuItem" name="closeWindowMenuItem">
+					<label>Close &amp;Window\tCtrl-W</label>
+					<help></help>
+				</object>
+			</object>
+			<object class="wxMenu" name="helpMenu">
+				<label>_Help</label>
+				<object class="wxMenuItem" name="aboutMenuItem">
+					<label>&amp;About</label>
+					<help></help>
+				</object>
+			</object>
+		</object>
+		<object class="wxStatusBar" name="statusBar">
+			<style>wxST_SIZEGRIP</style>
+			<fields>1</fields>
+		</object>
+	</object>
+</resource>

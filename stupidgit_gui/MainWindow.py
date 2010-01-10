@@ -48,7 +48,7 @@ class MainWindow(object):
         self.frame = LoadFrame(None, 'MainWindow')
         self.frame.SetSize((550,600))
         app_windows.append(self.frame)
-
+        
         # Setup events
         SetupEvents(self.frame, [
             (None, wx.EVT_CLOSE, self.OnWindowClosed),
@@ -59,6 +59,7 @@ class MainWindow(object):
             ('closeWindowMenuItem', wx.EVT_MENU, self.OnCloseWindow),
             ('aboutMenuItem', wx.EVT_MENU, self.OnAbout),
 
+            ('refreshTool', wx.EVT_TOOL, self.OnRefresh),
             ('moduleChoice', wx.EVT_CHOICE, self.OnModuleChosen),
             ('refreshButton', wx.EVT_BUTTON, self.OnRefresh),
         ])
@@ -122,6 +123,7 @@ class MainWindow(object):
             moduleChoice = GetWidget(self.frame, 'moduleChoice')
             for module in self.mainRepo.all_modules:
                 moduleChoice.Append(module.name)
+            
             moduleChoice.Select(0)
             self.SetRepo(repo)
 

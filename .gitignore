@@ -2,6 +2,7 @@
 dist/*
 build/*
 Output/*
+tmp/*
 StupidGit.egg-info
 MANIFEST
 *.swp
