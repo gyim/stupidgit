@@ -183,7 +183,7 @@ class IndexTab(object):
         submodule_names = [ r.name for r in self.repo.submodules ]
 
         if modification == FILE_UNMERGED and filename not in submodule_names:
-            self.PopupMenu(self.unstagedMenu)
+            self.mainWindow.PopupMenu(self.unstagedMenu)
 
     def OnCommit(self, e):
         if len(self.stagedChanges) == 0 and not os.path.exists(os.path.join(self.repo.dir, '.git', 'MERGE_HEAD')):

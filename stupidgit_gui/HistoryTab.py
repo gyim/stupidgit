@@ -263,7 +263,7 @@ class HistoryTab(object):
 
         # Progress dialog
         if result:
-            progressDialog = FetchProgressDialog(self, -1, self.repo, setupDialog.selectedRemote, setupDialog.includeSubmodules, setupDialog.fetchTags)
+            progressDialog = FetchProgressDialog(self.mainWindow, -1, self.repo, setupDialog.selectedRemote, setupDialog.includeSubmodules, setupDialog.fetchTags)
             if progressDialog.ShowModal():
                 self.mainController.ReloadRepo()
 
