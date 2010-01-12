@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainwindow.ui'
 **
-** Created: Sun Jan 10 12:50:41 2010
+** Created: Tue Jan 12 00:35:51 2010
 **      by: Qt User Interface Compiler version 4.6.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -19,6 +19,7 @@
 #include <QtGui/QMenu>
 #include <QtGui/QMenuBar>
 #include <QtGui/QStatusBar>
+#include <QtGui/QTextBrowser>
 #include <QtGui/QToolBar>
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QWidget>
@@ -32,17 +33,17 @@ public:
     QAction *actionQuit;
     QWidget *centralWidget;
     QVBoxLayout *verticalLayout;
+    QTextBrowser *textBrowser;
     QMenuBar *menuBar;
     QMenu *menuFile;
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
-    QToolBar *toolBar;
 
     void setupUi(QMainWindow *MainWindow)
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(498, 355);
+        MainWindow->resize(605, 461);
         actionOpen_Repository = new QAction(MainWindow);
         actionOpen_Repository->setObjectName(QString::fromUtf8("actionOpen_Repository"));
         actionQuit = new QAction(MainWindow);
@@ -53,10 +54,15 @@ public:
         verticalLayout->setSpacing(6);
         verticalLayout->setContentsMargins(11, 11, 11, 11);
         verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
+        textBrowser = new QTextBrowser(centralWidget);
+        textBrowser->setObjectName(QString::fromUtf8("textBrowser"));
+
+        verticalLayout->addWidget(textBrowser);
+
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 498, 22));
+        menuBar->setGeometry(QRect(0, 0, 605, 22));
         menuFile = new QMenu(menuBar);
         menuFile->setObjectName(QString::fromUtf8("menuFile"));
         MainWindow->setMenuBar(menuBar);
@@ -66,16 +72,12 @@ public:
         statusBar = new QStatusBar(MainWindow);
         statusBar->setObjectName(QString::fromUtf8("statusBar"));
         MainWindow->setStatusBar(statusBar);
-        toolBar = new QToolBar(MainWindow);
-        toolBar->setObjectName(QString::fromUtf8("toolBar"));
-        toolBar->setMovable(true);
-        MainWindow->addToolBar(Qt::TopToolBarArea, toolBar);
 
         menuBar->addAction(menuFile->menuAction());
         menuFile->addSeparator();
+        menuFile->addAction(actionOpen_Repository);
+        menuFile->addSeparator();
         menuFile->addAction(actionQuit);
-        toolBar->addSeparator();
-        toolBar->addAction(actionOpen_Repository);
 
         retranslateUi(MainWindow);
 
@@ -89,7 +91,6 @@ public:
         actionOpen_Repository->setShortcut(QApplication::translate("MainWindow", "Ctrl+O", 0, QApplication::UnicodeUTF8));
         actionQuit->setText(QApplication::translate("MainWindow", "Quit", 0, QApplication::UnicodeUTF8));
         menuFile->setTitle(QApplication::translate("MainWindow", "File", 0, QApplication::UnicodeUTF8));
-        toolBar->setWindowTitle(QApplication::translate("MainWindow", "toolBar", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };

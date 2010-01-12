@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "GitRepository.h"
 
 namespace Ui {
     class MainWindow;
@@ -18,6 +19,11 @@ protected:
 
 private:
     Ui::MainWindow *ui;
+    GitRepository *repo;
+
+private slots:
+    void on_actionOpen_Repository_triggered();
+    void on_actionQuit_triggered();
 };
 
 #endif // MAINWINDOW_H

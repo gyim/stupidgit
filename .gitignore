@@ -1,3 +1,4 @@
 *.o
 *.app
 *.user
+moc_*.cpp
