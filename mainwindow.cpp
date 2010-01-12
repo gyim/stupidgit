@@ -58,5 +58,31 @@ void MainWindow::on_actionOpen_Repository_triggered()
     }
 
     // Run git status
-    ui->textBrowser->setText(repo->commandOutput(QStringList() << "status"));
+    connect(repo, SIGNAL(refreshed()), this, SLOT(onRepoRefreshed()));
+    repo->refresh();
+}
+
+void MainWindow::onRepoRefreshed()
+{
+    QString text;
+    text.append("Repository refreshed.\nUnstaged changes:");
+
+    for (QMapIterator<QString,GitFileStatus> i(repo->getUnstagedChanges()); i.hasNext(); ) {
+        i.next();
+        text.append(i.key());
+        text.append(": ");
+        text.append((int)i.value());
+        text.append("\n");
+    }
+
+    text.append("\nStaged changes:\n");
+    for (QMapIterator<QString,GitFileStatus> i(repo->getStagedChanges()); i.hasNext(); ) {
+        i.next();
+        text.append(i.key());
+        text.append(": ");
+        text.append((int)i.value());
+        text.append("\n");
+    }
+
+    ui->textBrowser->setText(text);
 }

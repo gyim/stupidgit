@@ -22,6 +22,8 @@ private:
     GitRepository *repo;
 
 private slots:
+    void onRepoRefreshed();
+
     void on_actionOpen_Repository_triggered();
     void on_actionQuit_triggered();
 };
