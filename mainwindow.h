@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "GitRepository.h"
+#include "gitmodifiedfilemodel.h"
 
 namespace Ui {
     class MainWindow;
@@ -20,6 +21,7 @@ protected:
 private:
     Ui::MainWindow *ui;
     GitRepository *repo;
+    GitModifiedFileModel *modifiedFileModel;
 
 private slots:
     void onRepoRefreshed();

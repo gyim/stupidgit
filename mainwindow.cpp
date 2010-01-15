@@ -12,6 +12,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setUnifiedTitleAndToolBarOnMac(true);
     ui->setupUi(this);
     repo = 0;
+    modifiedFileModel = 0;
 }
 
 MainWindow::~MainWindow()
@@ -65,24 +66,14 @@ void MainWindow::on_actionOpen_Repository_triggered()
 void MainWindow::onRepoRefreshed()
 {
     QString text;
-    text.append("Repository refreshed.\nUnstaged changes:");
+    text.append("Repository refreshed.");
 
-    for (QMapIterator<QString,GitFileStatus> i(repo->getUnstagedChanges()); i.hasNext(); ) {
-        i.next();
-        text.append(i.key());
-        text.append(": ");
-        text.append((int)i.value());
-        text.append("\n");
+    if (modifiedFileModel) {
+        delete modifiedFileModel;
     }
-
-    text.append("\nStaged changes:\n");
-    for (QMapIterator<QString,GitFileStatus> i(repo->getStagedChanges()); i.hasNext(); ) {
-        i.next();
-        text.append(i.key());
-        text.append(": ");
-        text.append((int)i.value());
-        text.append("\n");
-    }
+    modifiedFileModel = new GitModifiedFileModel(repo, this);
 
     ui->textBrowser->setText(text);
+    ui->treeView->setModel(modifiedFileModel);
+    ui->treeView->expandAll();
 }

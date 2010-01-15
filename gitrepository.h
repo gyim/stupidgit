@@ -5,6 +5,8 @@
 #include <QDir>
 #include <QMap>
 #include <QProcess>
+#include <QList>
+#include <QPair>
 
 typedef enum {
     GitFileAdded,
@@ -19,6 +21,9 @@ typedef enum {
     GitFileUnknown
 } GitFileStatus;
 
+typedef QPair<QString,GitFileStatus> GitFileInfo;
+typedef QList<GitFileInfo> GitFileInfoList;
+
 class GitRepository : public QObject
 {
 Q_OBJECT
@@ -27,8 +32,10 @@ private:
     QDir dir;
 
     // Status information
-    QMap<QString, GitFileStatus> unstagedChanges;
-    QMap<QString, GitFileStatus> stagedChanges;
+    GitFileInfoList unstagedChanges;
+    GitFileInfoList stagedChanges;
+    GitFileInfoList untrackedFiles;
+    GitFileInfoList unmergedFiles;
 
     // Processes
     QProcess *refreshProcess;
@@ -48,8 +55,10 @@ public:
     const QString commandOutput(QStringList& arguments);
 
     // Repository information
-    QMap<QString,GitFileStatus>& getUnstagedChanges() { return unstagedChanges; }
-    QMap<QString,GitFileStatus>& getStagedChanges() { return stagedChanges; }
+    GitFileInfoList& getUnstagedChanges() { return unstagedChanges; }
+    GitFileInfoList& getStagedChanges() { return stagedChanges; }
+    GitFileInfoList& getUntrackedFiles() { return untrackedFiles; }
+    GitFileInfoList& getUnmergedFiles() { return unmergedFiles; }
 
 signals:
     void refreshed(void);

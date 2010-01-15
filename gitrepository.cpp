@@ -86,9 +86,14 @@ void GitRepository::unstagedStatusRefreshed(int exitCode, QProcess::ExitStatus /
     QStringList lines = output.split('\n', QString::SkipEmptyParts);
     foreach (QString line, lines) {
         if (line.length() > 2 && line[1] == '\t') {
-            QChar status = line[0];
+            GitFileStatus status = fileStatusByCode(line[0]);
             QString filename = line.right(line.length()-2);
-            unstagedChanges[filename] = fileStatusByCode(status);
+            if (status == GitFileUnmerged) {
+                unmergedFiles.append(GitFileInfo(filename, GitFileUnmerged));
+            }
+            else {
+                unstagedChanges.append(GitFileInfo(filename, status));
+            }
         }
     }
 
@@ -117,10 +122,10 @@ void GitRepository::stagedStatusRefreshed(int exitCode, QProcess::ExitStatus /*e
     QStringList lines = output.split('\n', QString::SkipEmptyParts);
     foreach (QString line, lines) {
         if (line.length() > 2 && line[1] == '\t') {
-            QChar status = line[0];
+            GitFileStatus status = fileStatusByCode(line[0]);
             QString filename = line.right(line.length()-2);
-            if (!(status.toLatin1() == 'U' && unstagedChanges.contains(filename))) {
-                stagedChanges[filename] = fileStatusByCode(status);
+            if (status != GitFileUnmerged) {
+                stagedChanges.append(GitFileInfo(filename, status));
             }
         }
     }
@@ -149,7 +154,7 @@ void GitRepository::untrackedStatusRefreshed(int exitCode, QProcess::ExitStatus 
     QString output = refreshProcess->readAllStandardOutput();
     QStringList lines = output.split('\n', QString::SkipEmptyParts);
     foreach (QString line, lines) {
-        unstagedChanges[line] = GitFileUntracked;
+        untrackedFiles.append(GitFileInfo(line, GitFileUntracked));
     }
 
     // Emit "refreshed" signal
