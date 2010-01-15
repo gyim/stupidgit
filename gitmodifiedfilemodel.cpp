@@ -55,7 +55,7 @@ QVariant GitModifiedFileModel::data(const QModelIndex &index, int role) const
             case GitModificationStaged:
                 return "Selected to commit";
             case GitModificationUnstaged:
-                return "Not selected to commit";
+                return "Not to commit";
             case GitModificationUnmerged:
                 return "Unmerged files";
             case GitModificationUntracked:
