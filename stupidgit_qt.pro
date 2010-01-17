@@ -4,12 +4,12 @@
 QT += webkit
 TARGET = stupidgit_qt
 TEMPLATE = app
-SOURCES += main.cpp \
-    mainwindow.cpp \
-    gitrepository.cpp \
-    gitmodifiedfilemodel.cpp
-HEADERS += mainwindow.h \
-    gitrepository.h \
-    gitmodifiedfilemodel.h
-FORMS += mainwindow.ui
+SOURCES += src/main.cpp \
+    src/mainwindow.cpp \
+    src/gitrepository.cpp \
+    src/gitmodifiedfilemodel.cpp
+HEADERS += src/mainwindow.h \
+    src/gitrepository.h \
+    src/gitmodifiedfilemodel.h
+FORMS += src/mainwindow.ui
 RESOURCES += icons.qrc
