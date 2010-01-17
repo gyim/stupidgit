@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "GitRepository.h"
+#include "gitrepository.h"
 #include "gitmodifiedfilemodel.h"
 
 namespace Ui {
@@ -25,6 +25,7 @@ private:
 
 private slots:
     void onRepoRefreshed();
+    void onGitError(int returnCode, QString errorMsg);
 
     void on_actionOpen_Repository_triggered();
     void on_actionQuit_triggered();

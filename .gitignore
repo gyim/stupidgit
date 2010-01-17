@@ -5,3 +5,5 @@
 moc_*.cpp
 ui_*.h
 ui_*.cpp
+stupidgit_qt
+Makefile

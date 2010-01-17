@@ -46,6 +46,7 @@ private:
 
 public:
     explicit GitRepository(QObject *parent = 0);
+    QString gitBinary();
 
     // Directory
     bool setDirectory(QString& directory);

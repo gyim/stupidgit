@@ -60,6 +60,7 @@ void MainWindow::on_actionOpen_Repository_triggered()
 
     // Run git status
     connect(repo, SIGNAL(refreshed()), this, SLOT(onRepoRefreshed()));
+    connect(repo, SIGNAL(gitError(int,QString)), this, SLOT(onGitError(int,QString)));
     repo->refresh();
 }
 
@@ -76,4 +77,10 @@ void MainWindow::onRepoRefreshed()
     ui->textBrowser->setText(text);
     ui->treeView->setModel(modifiedFileModel);
     ui->treeView->expandAll();
+}
+
+void MainWindow::onGitError(int errorCode, QString errorMsg)
+{
+    Q_UNUSED(errorCode);
+    QMessageBox::critical(this, "Git error", errorMsg);
 }
