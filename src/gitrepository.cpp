@@ -8,10 +8,25 @@
 
 static QString *_gitBinary = 0;
 
+#define startProcess(args,eventHandler) \
+{ \
+	QProcess *_p = createProcess(); \
+	connect(_p, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(eventHandler(int,QProcess::ExitStatus))); \
+	queueProcess(_p, (args)); \
+}
+
+#define returnIfProcessFailed(exitCode) \
+{ \
+	if (exitCode != 0) { \
+		emit gitError(exitCode, currentProcess->readAllStandardError()); \
+		return; \
+	} \
+}
+
 GitRepository::GitRepository(QObject *parent) :
 	QObject(parent)
 {
-	refreshProcess = 0;
+	currentProcess = 0;
 }
 
 QString GitRepository::gitBinary()
@@ -85,45 +100,62 @@ QProcess *GitRepository::createProcess()
 	return process;
 }
 
-const QString GitRepository::commandOutput(QStringList& arguments)
+void GitRepository::queueProcess(QProcess *process, QStringList &args)
 {
-	QProcess *process = createProcess();
-	process->start(gitBinary(), arguments);
-	process->closeWriteChannel();
+	// It is assumed that this slot is the last which is connected with the finished signal:
+	// it will free the process object and start the next process in the queue (if any)
+	connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(processFinished(int,QProcess::ExitStatus)));
 
-	if (!process->waitForFinished()) {
-		delete process;
-		return "";
+	processQueueMutex.lock();
+
+	// Queue new process
+	QStringList *argsCopy = new QStringList(args);
+	processQueue.append(new GitProcess(process, argsCopy));
+
+	// Start process if currently not running
+	if (!currentProcess) {
+		currentProcess = process;
+		currentProcess->start(gitBinary(), args);
+	}
+	processQueueMutex.unlock();
+}
+
+void GitRepository::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
+{
+	Q_UNUSED(exitCode);
+	Q_UNUSED(exitStatus);
+
+	processQueueMutex.lock();
+
+	// Delete old process
+	GitProcess *proc = processQueue.front();
+	processQueue.pop_front();
+	delete proc->first;
+	delete proc->second;
+	delete proc;
+	currentProcess = 0;
+
+	// Start new process if necessary
+	if (processQueue.length()) {
+		GitProcess *newProc = processQueue.front();
+		currentProcess = newProc->first;
+		currentProcess->start(gitBinary(), *(newProc->second));
 	}
 
-	QString result = process->readAllStandardOutput();
-	delete process;
-	return result;
+	processQueueMutex.unlock();
 }
 
 void GitRepository::refresh()
 {
-	if (refreshProcess)
-		return;
-
-	refreshProcess = createProcess();
-	connect(refreshProcess, SIGNAL(finished(int,QProcess::ExitStatus)),
-			this, SLOT(unstagedStatusRefreshed(int,QProcess::ExitStatus)));
-	refreshProcess->start(gitBinary(), QStringList() << "diff" << "--name-status");
+	startProcess(QStringList() << "diff" << "--name-status", unstagedStatusRefreshed);
 }
 
 void GitRepository::unstagedStatusRefreshed(int exitCode, QProcess::ExitStatus /*exitStatus*/)
 {
-	// Check error
-	if (exitCode != 0) {
-		emit gitError(exitCode, refreshProcess->readAllStandardError());
-		delete refreshProcess;
-		refreshProcess = 0;
-		return;
-	}
+	returnIfProcessFailed(exitCode);
 
 	// Parse output
-	QString output = refreshProcess->readAllStandardOutput();
+	QString output = currentProcess->readAllStandardOutput();
 	QStringList lines = output.split('\n', QString::SkipEmptyParts);
 	foreach (QString line, lines) {
 		if (line.length() > 2 && line[1] == '\t') {
@@ -138,28 +170,16 @@ void GitRepository::unstagedStatusRefreshed(int exitCode, QProcess::ExitStatus /
 		}
 	}
 
-	delete refreshProcess;
-	refreshProcess = 0;
-
 	// Fetch staged changes
-	refreshProcess = createProcess();
-	connect(refreshProcess, SIGNAL(finished(int,QProcess::ExitStatus)),
-			this, SLOT(stagedStatusRefreshed(int,QProcess::ExitStatus)));
-	refreshProcess->start(gitBinary(), QStringList() << "diff" << "--cached" << "--name-status");
+	startProcess(QStringList() << "diff" << "--cached" << "--name-status", stagedStatusRefreshed);
 }
 
 void GitRepository::stagedStatusRefreshed(int exitCode, QProcess::ExitStatus /*exitStatus*/)
 {
-	// Check error
-	if (exitCode != 0) {
-		emit gitError(exitCode, refreshProcess->readAllStandardError());
-		delete refreshProcess;
-		refreshProcess = 0;
-		return;
-	}
+	returnIfProcessFailed(exitCode);
 
 	// Parse output
-	QString output = refreshProcess->readAllStandardOutput();
+	QString output = currentProcess->readAllStandardOutput();
 	QStringList lines = output.split('\n', QString::SkipEmptyParts);
 	foreach (QString line, lines) {
 		if (line.length() > 2 && line[1] == '\t') {
@@ -171,28 +191,16 @@ void GitRepository::stagedStatusRefreshed(int exitCode, QProcess::ExitStatus /*e
 		}
 	}
 
-	delete refreshProcess;
-	refreshProcess = 0;
-
 	// Fetch untracked changes
-	refreshProcess = createProcess();
-	connect(refreshProcess, SIGNAL(finished(int,QProcess::ExitStatus)),
-			this, SLOT(untrackedStatusRefreshed(int,QProcess::ExitStatus)));
-	refreshProcess->start(gitBinary(), QStringList() << "ls-files" << "--others" << "--exclude-standard");
+	startProcess(QStringList() << "ls-files" << "--others" << "--exclude-standard", untrackedStatusRefreshed);
 }
 
 void GitRepository::untrackedStatusRefreshed(int exitCode, QProcess::ExitStatus /*exitStatus*/)
 {
-	// Check error
-	if (exitCode != 0) {
-		emit gitError(exitCode, refreshProcess->readAllStandardError());
-		delete refreshProcess;
-		refreshProcess = 0;
-		return;
-	}
+	returnIfProcessFailed(exitCode);
 
 	// Parse output
-	QString output = refreshProcess->readAllStandardOutput();
+	QString output = currentProcess->readAllStandardOutput();
 	QStringList lines = output.split('\n', QString::SkipEmptyParts);
 	foreach (QString line, lines) {
 		untrackedFiles.append(GitFileInfo(line, GitFileUntracked));
