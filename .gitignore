@@ -1,9 +1,16 @@
-.DS_Store
+# User settings
+Makefile
+*.user
+
+# Build output
+stupidgit_qt
 *.o
 *.app
-*.user
 moc_*.cpp
 ui_*.h
 ui_*.cpp
-stupidgit_qt
-Makefile
+qrc*.h
+qrc*.cpp
+
+# Temporary files
+.DS_Store
