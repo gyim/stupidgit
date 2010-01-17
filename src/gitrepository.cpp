@@ -27,6 +27,7 @@ GitRepository::GitRepository(QObject *parent) :
 	QObject(parent)
 {
 	currentProcess = 0;
+	refreshing = false;
 }
 
 QString GitRepository::gitBinary()
@@ -147,12 +148,19 @@ void GitRepository::processFinished(int exitCode, QProcess::ExitStatus exitStatu
 
 void GitRepository::refresh()
 {
+	if (refreshing)
+		return;
+
+	refreshing = true;
 	startProcess(QStringList() << "diff" << "--name-status", unstagedStatusRefreshed);
 }
 
 void GitRepository::unstagedStatusRefreshed(int exitCode, QProcess::ExitStatus /*exitStatus*/)
 {
-	returnIfProcessFailed(exitCode);
+	if (exitCode != 0) {
+		refreshing = false;
+		returnIfProcessFailed(exitCode);
+	}
 
 	// Parse output
 	QString output = currentProcess->readAllStandardOutput();
@@ -176,7 +184,10 @@ void GitRepository::unstagedStatusRefreshed(int exitCode, QProcess::ExitStatus /
 
 void GitRepository::stagedStatusRefreshed(int exitCode, QProcess::ExitStatus /*exitStatus*/)
 {
-	returnIfProcessFailed(exitCode);
+	if (exitCode != 0) {
+		refreshing = false;
+		returnIfProcessFailed(exitCode);
+	}
 
 	// Parse output
 	QString output = currentProcess->readAllStandardOutput();
@@ -197,7 +208,10 @@ void GitRepository::stagedStatusRefreshed(int exitCode, QProcess::ExitStatus /*e
 
 void GitRepository::untrackedStatusRefreshed(int exitCode, QProcess::ExitStatus /*exitStatus*/)
 {
-	returnIfProcessFailed(exitCode);
+	if (exitCode != 0) {
+		refreshing = false;
+		returnIfProcessFailed(exitCode);
+	}
 
 	// Parse output
 	QString output = currentProcess->readAllStandardOutput();
@@ -235,4 +249,28 @@ GitFileStatus GitRepository::fileStatusByCode(QChar statusCode)
 	default:
 		return GitFileUnknown;
 	}
+}
+
+void GitRepository::getFileDiff(GitModificationType modificationType, QString& filename)
+{
+	QStringList args;
+
+	if (modificationType == GitModificationUnstaged)
+		args << "diff" << filename;
+	else if (modificationType == GitModificationStaged)
+		args << "diff" << "--cached" << filename;
+	else if (modificationType == GitModificationUnmerged)
+		args << "diff" << filename;
+	else if (modificationType == GitModificationUntracked)
+		args << "diff" << "/dev/null" << filename;
+
+	startProcess(args, gotFileDiff);
+}
+
+void GitRepository::gotFileDiff(int exitCode, QProcess::ExitStatus exitStatus)
+{
+	Q_UNUSED(exitStatus);
+	returnIfProcessFailed(exitCode);
+
+	emit gotFileDiff(currentProcess->readAllStandardOutput());
 }

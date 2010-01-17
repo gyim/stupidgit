@@ -6,13 +6,6 @@
 #include <QPair>
 #include "gitrepository.h"
 
-typedef enum {
-	GitModificationStaged,
-	GitModificationUnstaged,
-	GitModificationUnmerged,
-	GitModificationUntracked
-} GitModificationType;
-
 class GitModifiedFileModel : public QAbstractItemModel
 {
 	Q_OBJECT
@@ -28,8 +21,12 @@ public:
 	GitModifiedFileModel(GitRepository *repo, QObject *parent = 0);
 	~GitModifiedFileModel();
 
+	// Getting/setting data
 	void setRepository(GitRepository *repo);
+	GitModificationType getModificationType(QModelIndex &index);
+	QString getFileName(QModelIndex &index);
 
+	// QAbstractItemModel implementation
 	QVariant data(const QModelIndex &index, int role) const;
 	Qt::ItemFlags flags(const QModelIndex &index) const;
 	QVariant headerData(int section, Qt::Orientation orientation,

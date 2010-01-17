@@ -44,6 +44,25 @@ void GitModifiedFileModel::setRepository(GitRepository *_repo)
 	}
 }
 
+GitModificationType GitModifiedFileModel::getModificationType(QModelIndex &index)
+{
+	if (index.isValid() && index.parent().isValid()) {
+		return folderTypes[index.internalId()];
+	}
+	else {
+		return GitModificationNone;
+	}
+}
+
+QString GitModifiedFileModel::getFileName(QModelIndex &index)
+{
+	if (index.isValid() && index.parent().isValid()) {
+		return folders[index.internalId()].at(index.row()).first;
+	}
+	else
+		return "";
+}
+
 QVariant GitModifiedFileModel::data(const QModelIndex &index, int role) const
 {
 	if (!index.isValid())

@@ -7,6 +7,7 @@
 #include <QProcess>
 #include <QList>
 #include <QPair>
+#include <QVariant>
 #include <QMutex>
 
 typedef enum {
@@ -21,6 +22,14 @@ typedef enum {
 	GitFileBroken,
 	GitFileUnknown
 } GitFileStatus;
+
+typedef enum {
+	GitModificationNone,
+	GitModificationStaged,
+	GitModificationUnstaged,
+	GitModificationUnmerged,
+	GitModificationUntracked
+} GitModificationType;
 
 typedef QPair<QString,GitFileStatus> GitFileInfo;
 typedef QList<GitFileInfo> GitFileInfoList;
@@ -47,6 +56,8 @@ private:
 	QProcess *createProcess();
 	void queueProcess(QProcess *process, QStringList &args);
 
+	bool refreshing;
+
 	// Utility functions
 	GitFileStatus fileStatusByCode(QChar statusCode);
 
@@ -67,15 +78,18 @@ public:
 signals:
 	void refreshed(void);
 	void gitError(int exitCode, QString errorMessage);
+	void gotFileDiff(QString diff);
 
 public slots:
 	void refresh(void);
+	void getFileDiff(GitModificationType modificationType, QString& filename);
 
 private slots:
 	void processFinished(int exitCode, QProcess::ExitStatus exitStatus);
 	void unstagedStatusRefreshed(int exitCode, QProcess::ExitStatus exitStatus);
 	void stagedStatusRefreshed(int exitCode, QProcess::ExitStatus exitStatus);
 	void untrackedStatusRefreshed(int exitCode, QProcess::ExitStatus exitStatus);
+	void gotFileDiff(int exitCode, QProcess::ExitStatus exitStatus);
 };
 
 #endif // GITREPOSITORY_H

@@ -60,9 +60,6 @@
            <attribute name="headerVisible">
             <bool>false</bool>
            </attribute>
-           <attribute name="headerVisible">
-            <bool>false</bool>
-           </attribute>
           </widget>
           <widget class="QTextBrowser" name="textBrowser">
            <property name="sizePolicy">
@@ -70,6 +67,9 @@
              <horstretch>8</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="lineWrapMode">
+            <enum>QTextEdit::WidgetWidth</enum>
            </property>
           </widget>
          </widget>
@@ -86,7 +86,7 @@
      <x>0</x>
      <y>0</y>
      <width>605</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

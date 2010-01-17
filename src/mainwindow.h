@@ -25,6 +25,7 @@ private:
 
 private slots:
 	void onRepoRefreshed();
+	void onModifiedFileSelectionChanged(QModelIndex current, QModelIndex previous);
 	void onGitError(int returnCode, QString errorMsg);
 
 	void on_actionOpen_Repository_triggered();

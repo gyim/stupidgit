@@ -9,10 +9,13 @@ MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow)
 {
-	setUnifiedTitleAndToolBarOnMac(true);
-	ui->setupUi(this);
 	repo = 0;
 	modifiedFileModel = 0;
+
+	// Setup UI
+	setUnifiedTitleAndToolBarOnMac(true);
+	ui->setupUi(this);
+	ui->textBrowser->setWordWrapMode(QTextOption::NoWrap);
 }
 
 MainWindow::~MainWindow()
@@ -61,6 +64,7 @@ void MainWindow::on_actionOpen_Repository_triggered()
 	// Run git status
 	connect(repo, SIGNAL(refreshed()), this, SLOT(onRepoRefreshed()));
 	connect(repo, SIGNAL(gitError(int,QString)), this, SLOT(onGitError(int,QString)));
+	connect(repo, SIGNAL(gotFileDiff(QString)), ui->textBrowser, SLOT(setText(QString)));
 	repo->refresh();
 }
 
@@ -77,6 +81,22 @@ void MainWindow::onRepoRefreshed()
 	ui->textBrowser->setText(text);
 	ui->treeView->setModel(modifiedFileModel);
 	ui->treeView->expandAll();
+
+	// TODO: memory leak?
+	ui->treeView->setSelectionModel(new QItemSelectionModel(modifiedFileModel, ui->treeView));
+	connect(ui->treeView->selectionModel(), SIGNAL(currentChanged(QModelIndex,QModelIndex)), this, SLOT(onModifiedFileSelectionChanged(QModelIndex,QModelIndex)));
+}
+
+void MainWindow::onModifiedFileSelectionChanged(QModelIndex current, QModelIndex previous)
+{
+	Q_UNUSED(previous);
+
+	GitModificationType modificationType = modifiedFileModel->getModificationType(current);
+	QString filename = modifiedFileModel->getFileName(current);
+
+	if (modificationType != GitModificationNone && filename.length()) {
+		repo->getFileDiff(modificationType, filename);
+	}
 }
 
 void MainWindow::onGitError(int errorCode, QString errorMsg)
