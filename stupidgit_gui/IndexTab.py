@@ -582,6 +582,7 @@ class AuthorDialog(wx.Dialog):
         self.sizer.Add(self.nameEntry, 0, wx.EXPAND | wx.ALL, 5)
 
         # Email
+        self.sizer.Add(wx.StaticText(self, -1, "E-mail:"), 0, wx.ALL, 5)
         self.emailEntry = wx.TextCtrl(self, -1)
         self.emailEntry.SetValue(default_email)
         self.sizer.Add(self.emailEntry, 0, wx.EXPAND | wx.ALL, 5)
