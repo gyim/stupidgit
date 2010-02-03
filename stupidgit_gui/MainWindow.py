@@ -46,8 +46,13 @@ class MainWindow(object):
     def __init__(self, repo):
         # Load frame from XRC
         self.frame = LoadFrame(None, 'MainWindow')
-        self.frame.SetSize((550,600))
         app_windows.append(self.frame)
+        
+        # Read default window size
+        self.config = wx.Config('stupidgit')
+        width = self.config.ReadInt('MainWindowWidth', 550)
+        height = self.config.ReadInt('MainWindowHeight', 650)
+        self.frame.SetSize((width, height))
         
         # Setup events
         SetupEvents(self.frame, [
@@ -82,6 +87,12 @@ class MainWindow(object):
         self.frame.Close()
 
     def OnWindowClosed(self, e):
+        # Save window geometry
+        size = self.frame.GetSize()
+        self.config.WriteInt('MainWindowWidth', size.GetWidth())
+        self.config.WriteInt('MainWindowHeight', size.GetHeight())
+
+        # Close window
         app_windows.remove(self.frame)
         self.frame.Destroy()
 
