@@ -99,8 +99,8 @@ class IndexTab(object):
             ('stageButton', wx.EVT_BUTTON, self.OnStage),
             ('unstageButton', wx.EVT_BUTTON, self.OnUnstage),
             ('discardButton', wx.EVT_BUTTON, self.OnDiscard),
-            ('commitButton', wx.EVT_BUTTON, self.OnCommit),
-            ('discardAllButton', wx.EVT_BUTTON, self.OnReset)
+            ('commitTool', wx.EVT_TOOL, self.OnCommit),
+            ('resetTool', wx.EVT_TOOL, self.OnReset)
         ])
 
     def OnStage(self, e):
@@ -187,11 +187,16 @@ class IndexTab(object):
 
     def OnCommit(self, e):
         if len(self.stagedChanges) == 0 and not os.path.exists(os.path.join(self.repo.dir, '.git', 'MERGE_HEAD')):
+            wx.MessageBox(
+                "Stage some files on Changes tab before committing!",
+                "Nothing to commit.",
+                style=wx.ICON_EXCLAMATION | wx.OK
+            )
             return
 
         if len([c for f,c in self.unstagedChanges if c == FILE_UNMERGED]):
             wx.MessageBox(
-                "You should fix conflicts before commiting!",
+                "You should fix conflicts before committing!",
                 "Error",
                 style=wx.ICON_EXCLAMATION | wx.OK
             )
