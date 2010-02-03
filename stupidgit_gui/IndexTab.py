@@ -53,6 +53,8 @@ class IndexTab(object):
     def __init__(self, mainController):
         self.mainController = mainController
         self.mainWindow = mainController.frame
+        self.listPanel = GetWidget(self.mainWindow, 'indexListPanel')
+        self.listSizer = self.listPanel.GetSizer()
         
         # Splitter
         splitter = GetWidget(self.mainWindow, 'indexSplitter')
@@ -60,14 +62,12 @@ class IndexTab(object):
         splitter.SetMinimumPaneSize(120)
         
         # Unstaged list
-        unstagedPanel = GetWidget(self.mainWindow, 'unstagedListPanel')
-        unstagedSizer = unstagedPanel.GetSizer()
-        
-        self.unstagedList = FileList(unstagedPanel, -1)
+        self.unstagedList = FileList(self.listPanel, -1)
+        unstagedSizer = self.listPanel.GetSizer().GetItem(0).GetSizer()
         unstagedSizer.Add(self.unstagedList, 1, wx.EXPAND|wx.ALL, 0)
         self.unstagedList.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnUnstagedListSelect, self.unstagedList)
         self.unstagedList.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnUnstagedRightClick, self.unstagedList)
-        unstagedPanel.Layout()  
+        self.listPanel.Layout()
 
         self.unstagedMenu = wx.Menu()
         self.unstagedMenu.Append(MENU_MERGE_FILE, "Merge file")
@@ -78,13 +78,11 @@ class IndexTab(object):
         wx.EVT_MENU(self.unstagedList, MENU_TAKE_REMOTE, self.OnTakeRemote)
 
         # Staged changes
-        stagedPanel = GetWidget(self.mainWindow, 'stagedListPanel')
-        stagedSizer = stagedPanel.GetSizer()
-        
-        self.stagedList = FileList(stagedPanel, -1)
+        self.stagedList = FileList(self.listPanel, -1)
+        stagedSizer = self.listPanel.GetSizer().GetItem(2).GetSizer()
         stagedSizer.Add(self.stagedList, 1, wx.EXPAND|wx.ALL, 0)
         self.stagedList.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnStagedListSelect, self.stagedList)
-        stagedPanel.Layout()
+        self.listPanel.Layout()
 
         # Diff viewer
         diffPanel = GetWidget(self.mainWindow, 'indexDiffPanel')

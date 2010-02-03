@@ -108,19 +108,17 @@
 								<gravity>0</gravity>
 								<minsize>0</minsize>
 								<orientation>horizontal</orientation>
-								<object class="wxPanel" name="m_panel3">
+								<object class="wxPanel" name="indexListPanel">
 									<style>wxTAB_TRAVERSAL</style>
 									<object class="wxBoxSizer">
 										<orient>wxHORIZONTAL</orient>
 										<object class="sizeritem">
 											<option>1</option>
-											<flag>wxEXPAND | wxALL</flag>
+											<flag>wxEXPAND</flag>
 											<border>5</border>
-											<object class="wxPanel" name="unstagedListPanel">
-												<style>wxTAB_TRAVERSAL</style>
-												<object class="wxBoxSizer">
-													<orient>wxVERTICAL</orient>
-												</object>
+											<object class="wxStaticBoxSizer">
+												<orient>wxVERTICAL</orient>
+												<label>Unstaged changes (NOT to commit)</label>
 											</object>
 										</object>
 										<object class="sizeritem">
@@ -169,13 +167,11 @@
 										</object>
 										<object class="sizeritem">
 											<option>1</option>
-											<flag>wxEXPAND | wxALL</flag>
+											<flag>wxEXPAND</flag>
 											<border>5</border>
-											<object class="wxPanel" name="stagedListPanel">
-												<style>wxTAB_TRAVERSAL</style>
-												<object class="wxBoxSizer">
-													<orient>wxVERTICAL</orient>
-												</object>
+											<object class="wxStaticBoxSizer">
+												<orient>wxVERTICAL</orient>
+												<label>Staged to commit</label>
 											</object>
 										</object>
 									</object>
