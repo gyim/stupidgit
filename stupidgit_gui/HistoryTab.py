@@ -59,7 +59,8 @@ class HistoryTab(object):
         
         # Other events
         SetupEvents(self.mainWindow, [
-            ('fetchTool', wx.EVT_TOOL, self.OnFetch)
+            ('fetchTool', wx.EVT_TOOL, self.OnFetch),
+            ('gotoCommitMenuItem', wx.EVT_MENU, self.OnGotoCommit)
         ])
 
     def SetRepo(self, repo):
@@ -272,6 +273,26 @@ class HistoryTab(object):
 
     def OnFetchProgress(self, eventType, eventParam):
         print 'FETCH CALLBACK:', eventType, eventParam
+
+    def OnGotoCommit(self, e):
+        msg = wx.TextEntryDialog(
+            self.mainWindow,
+            "Enter commit ID:",
+            "Go to Version",
+            "",
+            wx.ICON_QUESTION | wx.OK | wx.CANCEL
+        )
+        msg.ShowModal()
+        commit_id = msg.GetValue()
+        
+        if commit_id:
+            error = self.commitList.GotoCommit(commit_id)
+            if error:
+                wx.MessageBox(
+                    error,
+                    "Error",
+                    style=wx.OK|wx.ICON_ERROR
+                )
 
     def SaveState(self):
         self.mainController.config.WriteInt('HistorySplitterPosition', self.splitter.GetSashPosition())

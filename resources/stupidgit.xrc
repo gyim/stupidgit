@@ -206,6 +206,13 @@
 					<help></help>
 				</object>
 			</object>
+			<object class="wxMenu" name="historyMenu">
+				<label>Version</label>
+				<object class="wxMenuItem" name="gotoCommitMenuItem">
+					<label>Go to Version\tCTRL-L</label>
+					<help></help>
+				</object>
+			</object>
 			<object class="wxMenu" name="windowMenu">
 				<label>Window</label>
 				<object class="wxMenuItem" name="closeWindowMenuItem">

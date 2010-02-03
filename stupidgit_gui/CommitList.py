@@ -481,6 +481,37 @@ class CommitList(wx.ScrolledWindow):
     def CommitByRow(self, row):
         return self.rows[row][0].commit
 
+    def GotoCommit(self, commit_id):
+        matching_commits = [c for c in self.commits if c.sha1.startswith(commit_id)]
+        if len(matching_commits) == 0:
+            return "Commit id '%s' cannot be found" % commit_id
+        elif len(matching_commits) > 1:
+            return "Given commit ID (%s) is ambiguous" % commit_id
+        else:
+            self.SelectCommit(matching_commits[0])
+            return None
+
+    def SelectCommit(self, commit):
+        row = self.commits.index(commit)
+        self.selection = [row]
+        
+        # Emit selection event
+        event = CommitListEvent(EVT_COMMITLIST_SELECT_type, self.GetId())
+        event.SetCurrentRow(row)
+        event.SetSelection(self.selection)
+        self.ProcessEvent(event)
+        self.OnSelectionChanged(row, self.selection)
+        
+        # Scroll to position
+        start_col, start_row = self.GetViewStart()
+        size = self.GetClientSize()
+        height = size.GetHeight() / LINH
+        
+        if row < start_row or row > start_row+height-1:
+            self.Scroll(start_col, max(row-2, 0))
+        
+        self.Refresh()
+
     # Virtual event handlers
     def OnSelectionChanged(self, row, selection):
         pass

@@ -70,7 +70,7 @@
             <event name="OnSetFocus"></event>
             <event name="OnSize"></event>
             <event name="OnUpdateUI"></event>
-            <object class="wxToolBar" expanded="1">
+            <object class="wxToolBar" expanded="0">
                 <property name="bg"></property>
                 <property name="bitmapsize"></property>
                 <property name="context_help"></property>
@@ -252,7 +252,7 @@
                     <event name="OnUpdateUI"></event>
                 </object>
             </object>
-            <object class="wxBoxSizer" expanded="1">
+            <object class="wxBoxSizer" expanded="0">
                 <property name="minimum_size"></property>
                 <property name="name">bSizer1</property>
                 <property name="orient">wxVERTICAL</property>
@@ -694,7 +694,7 @@
                                                             <property name="border">5</property>
                                                             <property name="flag">wxEXPAND | wxALL</property>
                                                             <property name="proportion">0</property>
-                                                            <object class="wxPanel" expanded="1">
+                                                            <object class="wxPanel" expanded="0">
                                                                 <property name="bg"></property>
                                                                 <property name="context_help"></property>
                                                                 <property name="enabled">1</property>
@@ -736,7 +736,7 @@
                                                                 <event name="OnSetFocus"></event>
                                                                 <event name="OnSize"></event>
                                                                 <event name="OnUpdateUI"></event>
-                                                                <object class="wxBoxSizer" expanded="1">
+                                                                <object class="wxBoxSizer" expanded="0">
                                                                     <property name="minimum_size"></property>
                                                                     <property name="name">bSizer7</property>
                                                                     <property name="orient">wxVERTICAL</property>
@@ -986,7 +986,7 @@
                     </object>
                 </object>
             </object>
-            <object class="wxMenuBar" expanded="0">
+            <object class="wxMenuBar" expanded="1">
                 <property name="bg"></property>
                 <property name="context_help"></property>
                 <property name="enabled">1</property>
@@ -1078,6 +1078,26 @@
                         <property name="name">quitMenuItem</property>
                         <property name="permission">none</property>
                         <property name="shortcut">CTRL-Q</property>
+                        <property name="unchecked_bitmap"></property>
+                        <event name="OnMenuSelection"></event>
+                        <event name="OnUpdateUI"></event>
+                    </object>
+                </object>
+                <object class="wxMenu" expanded="1">
+                    <property name="label">Version</property>
+                    <property name="name">historyMenu</property>
+                    <property name="permission">protected</property>
+                    <object class="wxMenuItem" expanded="1">
+                        <property name="bitmap"></property>
+                        <property name="checked">0</property>
+                        <property name="enabled">1</property>
+                        <property name="help"></property>
+                        <property name="id">wxID_ANY</property>
+                        <property name="kind">wxITEM_NORMAL</property>
+                        <property name="label">Go to Version</property>
+                        <property name="name">gotoCommitMenuItem</property>
+                        <property name="permission">none</property>
+                        <property name="shortcut">CTRL-L</property>
                         <property name="unchecked_bitmap"></property>
                         <event name="OnMenuSelection"></event>
                         <event name="OnUpdateUI"></event>
