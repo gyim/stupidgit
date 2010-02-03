@@ -386,7 +386,7 @@ class CommitList(wx.ScrolledWindow):
         else:
             self.selection = [row]
 
-        # Emit right click event
+        # Emit click event
         event = CommitListEvent(EVT_COMMITLIST_SELECT_type, self.GetId())
         event.SetCurrentRow(row)
         event.SetSelection(self.selection)
@@ -405,6 +405,8 @@ class CommitList(wx.ScrolledWindow):
         row = self.RowNumberByCoords(x, y)
         if row == None:
             return
+        
+        self.SelectRow(row)
 
         # Emit right click event
         event = CommitListEvent(EVT_COMMITLIST_RIGHTCLICK_type, self.GetId())
@@ -413,7 +415,7 @@ class CommitList(wx.ScrolledWindow):
         event.SetCoords( (e.GetX(), e.GetY()) )
         self.ProcessEvent(event)
         self.OnRightButtonClicked(row, self.selection)
-
+        
     def OnKeyPressed(self, e):
         key = e.GetKeyCode()
 
@@ -488,11 +490,10 @@ class CommitList(wx.ScrolledWindow):
         elif len(matching_commits) > 1:
             return "Given commit ID (%s) is ambiguous" % commit_id
         else:
-            self.SelectCommit(matching_commits[0])
+            self.SelectRow(self.commits.index(matching_commits[0]))
             return None
 
-    def SelectCommit(self, commit):
-        row = self.commits.index(commit)
+    def SelectRow(self, row):
         self.selection = [row]
         
         # Emit selection event
