@@ -16,7 +16,6 @@ MENU_SWITCH_TO_COMMIT   = 10000
 MENU_MERGE_COMMIT       = 10001
 MENU_CHERRYPICK_COMMIT  = 10002
 MENU_REVERT_COMMIT      = 10003
-MENU_FETCH_COMMITS      = 10004
 
 MENU_CREATE_BRANCH      = 11000
 MENU_DELETE_BRANCH      = 12000
@@ -57,7 +56,11 @@ class HistoryTab(object):
         wx.EVT_MENU(self.mainWindow, MENU_MERGE_COMMIT, self.OnMerge)
         wx.EVT_MENU(self.mainWindow, MENU_CHERRYPICK_COMMIT, self.OnCherryPick)
         wx.EVT_MENU(self.mainWindow, MENU_REVERT_COMMIT, self.OnRevert)
-        wx.EVT_MENU(self.mainWindow, MENU_FETCH_COMMITS, self.OnFetch)
+        
+        # Other events
+        SetupEvents(self.mainWindow, [
+            ('fetchTool', wx.EVT_TOOL, self.OnFetch)
+        ])
 
     def SetRepo(self, repo):
         # Branch indexes
@@ -299,11 +302,6 @@ class HistoryTab(object):
         # Cherry-pick
         self.contextMenu.Append(MENU_CHERRYPICK_COMMIT, "Pick this commit to HEAD (cherry-pick)")
         self.contextMenu.Append(MENU_REVERT_COMMIT, "Pick the inverse of this commit to HEAD (revert)")
-
-        # Fetch, push
-        if self.repo.remotes:
-            self.contextMenu.AppendSeparator()
-            self.contextMenu.Append(MENU_FETCH_COMMITS, "Fetch commits from remote repository")
 
     def GitCommand(self, cmd, check_submodules=False, **opts):
         try:
