@@ -91,6 +91,8 @@ class MainWindow(object):
         size = self.frame.GetSize()
         self.config.WriteInt('MainWindowWidth', size.GetWidth())
         self.config.WriteInt('MainWindowHeight', size.GetHeight())
+        self.historyTab.SaveState()
+        self.indexTab.SaveState()
 
         # Close window
         app_windows.remove(self.frame)

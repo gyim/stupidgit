@@ -46,8 +46,8 @@ class HistoryTab(object):
         diffSizer.Add(self.diffViewer, 1, wx.EXPAND)
         
         # Splitter
-        splitter = GetWidget(self.mainWindow, "historySplitter")
-        splitter.SetSashPosition(200)
+        self.splitter = GetWidget(self.mainWindow, "historySplitter")
+        self.splitter.SetSashPosition(self.mainController.config.ReadInt('HistorySplitterPosition', 200))
 
         # Context menu
         self.contextMenu = wx.Menu()
@@ -272,6 +272,9 @@ class HistoryTab(object):
 
     def OnFetchProgress(self, eventType, eventParam):
         print 'FETCH CALLBACK:', eventType, eventParam
+
+    def SaveState(self):
+        self.mainController.config.WriteInt('HistorySplitterPosition', self.splitter.GetSashPosition())
 
     def SetupContextMenu(self, commit):
         branches = self.repo.branches_by_sha1.get(commit.sha1, [])

@@ -57,9 +57,9 @@ class IndexTab(object):
         self.listSizer = self.listPanel.GetSizer()
         
         # Splitter
-        splitter = GetWidget(self.mainWindow, 'indexSplitter')
-        splitter.SetSashPosition(200)
-        splitter.SetMinimumPaneSize(120)
+        self.splitter = GetWidget(self.mainWindow, 'indexSplitter')
+        self.splitter.SetSashPosition(self.mainController.config.ReadInt('IndexSplitterPosition', 200))
+        self.splitter.SetMinimumPaneSize(120)
         
         # Unstaged list
         self.unstagedList = FileList(self.listPanel, -1)
@@ -289,6 +289,9 @@ class IndexTab(object):
 
     def Refresh(self):
         self.SetRepo(self.repo)
+
+    def SaveState(self):
+        self.mainController.config.WriteInt('IndexSplitterPosition', self.splitter.GetSashPosition())
 
     def _parse_diff_output(self, cmd):
         output = self.repo.run_cmd(cmd)
