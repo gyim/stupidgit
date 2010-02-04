@@ -1,6 +1,7 @@
 import wx
 import os
 import os.path
+import MainWindow
 from CommitList import CommitList, EVT_COMMITLIST_SELECT, EVT_COMMITLIST_RIGHTCLICK
 from DiffViewer import DiffViewer
 from SwitchWizard import SwitchWizard
@@ -275,6 +276,9 @@ class HistoryTab(object):
         print 'FETCH CALLBACK:', eventType, eventParam
 
     def OnGotoCommit(self, e):
+        if self.mainController.selectedTab != MainWindow.TAB_HISTORY:
+            return
+
         msg = wx.TextEntryDialog(
             self.mainWindow,
             "Enter commit ID:",

@@ -4,6 +4,70 @@
 		<style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>
 		<size>600,650</size>
 		<title>StupidGit</title>
+		<object class="wxMenuBar" name="menuBar">
+			<label>StupidGit</label>
+			<object class="wxMenu" name="repositoryMenu">
+				<label>Repository</label>
+				<object class="wxMenuItem" name="newWindowMenuItem">
+					<label>&amp;New Window\tCtrl-N</label>
+					<help></help>
+				</object>
+				<object class="wxMenuItem" name="openMenuItem">
+					<label>&amp;Open Repository\tCTRL-O</label>
+					<help></help>
+				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="quitMenuItem">
+					<label>&amp;Quit\tCTRL-Q</label>
+					<help></help>
+				</object>
+			</object>
+			<object class="wxMenu" name="historyMenu">
+				<label>Versions</label>
+				<object class="wxMenuItem" name="gotoCommitMenuItem">
+					<label>Go to Version\tCTRL-L</label>
+					<help></help>
+				</object>
+			</object>
+			<object class="wxMenu" name="indexMenu">
+				<label>Changes</label>
+				<object class="wxMenuItem" name="stageMenuItem">
+					<label>Stage Selected Files\tCTRL-S</label>
+					<help></help>
+				</object>
+				<object class="wxMenuItem" name="unstageMenuItem">
+					<label>Unstage Selected Files\tCTRL-Z</label>
+					<help></help>
+				</object>
+				<object class="wxMenuItem" name="discardMenuItem">
+					<label>Discard Selected Files\tCTRL-D</label>
+					<help></help>
+				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="commitMenuItem">
+					<label>Commit Staged Changes\tCTRL-ENTER</label>
+					<help></help>
+				</object>
+				<object class="wxMenuItem" name="resetMenuItem">
+					<label>Discard All Changes\tCTRL-SHIFT-D</label>
+					<help></help>
+				</object>
+			</object>
+			<object class="wxMenu" name="windowMenu">
+				<label>Window</label>
+				<object class="wxMenuItem" name="closeWindowMenuItem">
+					<label>Close &amp;Window\tCtrl-W</label>
+					<help></help>
+				</object>
+			</object>
+			<object class="wxMenu" name="helpMenu">
+				<label>_Help</label>
+				<object class="wxMenuItem" name="aboutMenuItem">
+					<label>&amp;About</label>
+					<help></help>
+				</object>
+			</object>
+		</object>
 		<object class="wxToolBar" name="toolbar">
 			<style>wxTB_HORIZONTAL|wxTB_TEXT</style>
 			<bitmapsize></bitmapsize>
@@ -185,46 +249,6 @@
 							</object>
 						</object>
 					</object>
-				</object>
-			</object>
-		</object>
-		<object class="wxMenuBar" name="menuBar">
-			<label>StupidGit</label>
-			<object class="wxMenu" name="fileMenu">
-				<label>File</label>
-				<object class="wxMenuItem" name="newWindowMenuItem">
-					<label>&amp;New Window\tCtrl-N</label>
-					<help></help>
-				</object>
-				<object class="wxMenuItem" name="openMenuItem">
-					<label>&amp;Open Repository\tCTRL-O</label>
-					<help></help>
-				</object>
-				<object class="separator" />
-				<object class="wxMenuItem" name="quitMenuItem">
-					<label>&amp;Quit\tCTRL-Q</label>
-					<help></help>
-				</object>
-			</object>
-			<object class="wxMenu" name="historyMenu">
-				<label>Version</label>
-				<object class="wxMenuItem" name="gotoCommitMenuItem">
-					<label>Go to Version\tCTRL-L</label>
-					<help></help>
-				</object>
-			</object>
-			<object class="wxMenu" name="windowMenu">
-				<label>Window</label>
-				<object class="wxMenuItem" name="closeWindowMenuItem">
-					<label>Close &amp;Window\tCtrl-W</label>
-					<help></help>
-				</object>
-			</object>
-			<object class="wxMenu" name="helpMenu">
-				<label>_Help</label>
-				<object class="wxMenuItem" name="aboutMenuItem">
-					<label>&amp;About</label>
-					<help></help>
 				</object>
 			</object>
 		</object>

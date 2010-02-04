@@ -11,6 +11,9 @@ STUPIDGIT_VERSION = "v0.1.1"
 ID_NEWWINDOW    = 101
 ID_CLOSEWINDOW  = 102
 
+TAB_HISTORY     = 0
+TAB_INDEX       = 1
+
 app_windows = []
 license_text = u'''
 Copyright (c) 2009 Ákos Gyimesi
@@ -57,6 +60,8 @@ class MainWindow(object):
         # Setup events
         SetupEvents(self.frame, [
             (None, wx.EVT_CLOSE, self.OnWindowClosed),
+            
+            ('tabs', wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnTabChanged),
 
             ('quitMenuItem', wx.EVT_MENU, self.OnExit),
             ('openMenuItem', wx.EVT_MENU, self.OnOpenRepository),
@@ -72,6 +77,7 @@ class MainWindow(object):
         # Setup tabs
         self.historyTab = HistoryTab(self)
         self.indexTab = IndexTab(self)
+        self.selectedTab = 0
 
         # Load repository
         self.SetMainRepo(repo)
@@ -112,6 +118,9 @@ class MainWindow(object):
                 self.SetMainRepo(repo)
         except GitError, msg:
             wx.MessageBox(str(msg), 'Error', style=wx.OK|wx.ICON_ERROR)
+
+    def OnTabChanged(self, e):
+        self.selectedTab = e.GetSelection()
 
     def OnAbout(self, e):
         info = wx.AboutDialogInfo()

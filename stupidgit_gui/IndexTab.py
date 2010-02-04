@@ -6,6 +6,7 @@ from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin, ListCtrlSelectionMana
 import os, os.path
 import sys
 
+import MainWindow
 import Wizard
 from DiffViewer import DiffViewer
 from git import *
@@ -98,27 +99,56 @@ class IndexTab(object):
             ('unstageButton', wx.EVT_BUTTON, self.OnUnstage),
             ('discardButton', wx.EVT_BUTTON, self.OnDiscard),
             ('commitTool', wx.EVT_TOOL, self.OnCommit),
-            ('resetTool', wx.EVT_TOOL, self.OnReset)
+            ('resetTool', wx.EVT_TOOL, self.OnReset),
+            
+            ('stageMenuItem', wx.EVT_MENU, self.OnStage),
+            ('unstageMenuItem', wx.EVT_MENU, self.OnUnstage),
+            ('discardMenuItem', wx.EVT_MENU, self.OnDiscard),
+            ('commitMenuItem', wx.EVT_MENU, self.OnCommit),
+            ('resetMenuItem', wx.EVT_MENU, self.OnReset),
         ])
 
     def OnStage(self, e):
-        for row in self.unstagedList.GetSelections():
+        if self.mainController.selectedTab != MainWindow.TAB_INDEX:
+            return
+
+        selection = self.unstagedList.GetSelections()
+
+        for row in selection:
             filename, change = self.unstagedChanges[row]
             if change == FILE_DELETED:
                 self.repo.run_cmd(['rm', '--cached', filename])
             else:
                 self.repo.run_cmd(['add', filename])
-
+        
         self.Refresh()
 
+        if len(selection) > 0:
+            row = selection[0]
+            if self.unstagedList.GetItemCount() > row:
+                self.unstagedList.SetItemState(row, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+
     def OnUnstage(self, e):
+        if self.mainController.selectedTab != MainWindow.TAB_INDEX:
+            return
+
+        selection = self.stagedList.GetSelections()
+
         for row in self.stagedList.GetSelections():
             filename = self.stagedChanges[row][0]
             self.repo.run_cmd(['reset', 'HEAD', filename])
 
         self.Refresh()
 
+        if len(selection) > 0:
+            row = selection[0]
+            if self.stagedList.GetItemCount() > row:
+                self.stagedList.SetItemState(row, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+
     def OnDiscard(self, e):
+        if self.mainController.selectedTab != MainWindow.TAB_INDEX:
+            return
+
         # Get selection
         rows = self.unstagedList.GetSelections()
         if len(rows) == 0:
