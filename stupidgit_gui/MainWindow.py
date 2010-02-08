@@ -68,6 +68,7 @@ class MainWindow(object):
             ('newWindowMenuItem', wx.EVT_MENU, self.OnNewWindow),
             ('closeWindowMenuItem', wx.EVT_MENU, self.OnCloseWindow),
             ('aboutMenuItem', wx.EVT_MENU, self.OnAbout),
+            ('refreshMenuItem', wx.EVT_MENU, self.OnRefresh),
 
             ('refreshTool', wx.EVT_TOOL, self.OnRefresh),
             ('moduleChoice', wx.EVT_CHOICE, self.OnModuleChosen),

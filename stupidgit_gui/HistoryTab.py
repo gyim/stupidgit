@@ -51,6 +51,7 @@ class HistoryTab(object):
         self.splitter.SetSashPosition(self.mainController.config.ReadInt('HistorySplitterPosition', 200))
 
         # Context menu
+        self.contextCommit = None
         self.contextMenu = wx.Menu()
         wx.EVT_MENU(self.mainWindow, MENU_SWITCH_TO_COMMIT, self.OnSwitchToCommit)
         wx.EVT_MENU(self.mainWindow, MENU_CREATE_BRANCH, self.OnCreateBranch)
@@ -61,7 +62,13 @@ class HistoryTab(object):
         # Other events
         SetupEvents(self.mainWindow, [
             ('fetchTool', wx.EVT_TOOL, self.OnFetch),
-            ('gotoCommitMenuItem', wx.EVT_MENU, self.OnGotoCommit)
+            ('switchTool', wx.EVT_TOOL, self.OnSwitchToCommit),
+            ('switchMenuItem', wx.EVT_MENU, self.OnSwitchToCommit),
+            ('createBranchMenuItem', wx.EVT_MENU, self.OnCreateBranch),
+            ('mergeMenuItem', wx.EVT_MENU, self.OnMerge),
+            ('cherryPickMenuItem', wx.EVT_MENU, self.OnCherryPick),
+            ('revertMenuItem', wx.EVT_MENU, self.OnRevert),
+            ('gotoCommitMenuItem', wx.EVT_MENU, self.OnGotoCommit),
         ])
 
     def SetRepo(self, repo):
@@ -82,10 +89,10 @@ class HistoryTab(object):
         self.diffViewer.Clear()
 
     def OnCommitSelected(self, e):
-        commit = self.commitList.CommitByRow(e.currentRow)
+        self.contextCommit = self.commitList.CommitByRow(e.currentRow)
 
         # Show in diff viewer
-        commit_diff = self.repo.run_cmd(['show', commit.sha1])
+        commit_diff = self.repo.run_cmd(['show', self.contextCommit.sha1])
         self.diffViewer.SetDiffText(commit_diff, commit_mode=True)
 
     def OnCommitRightClick(self, e):
@@ -94,6 +101,9 @@ class HistoryTab(object):
         self.commitList.PopupMenu(self.contextMenu, e.coords)
 
     def OnSwitchToCommit(self, e):
+        if not self.contextCommit or self.mainController.selectedTab != MainWindow.TAB_HISTORY:
+            return
+
         wizard = SwitchWizard(self.mainWindow, -1, self.repo, self.contextCommit)
         result = wizard.RunWizard()
 
@@ -140,6 +150,9 @@ class HistoryTab(object):
                 wx.MessageBox(msg, 'Warning', style=wx.OK|wx.ICON_ERROR)
 
     def OnCreateBranch(self, e):
+        if not self.contextCommit or self.mainController.selectedTab != MainWindow.TAB_HISTORY:
+            return
+
         dialog = wx.TextEntryDialog(self.mainWindow, "Enter branch name:", "Create branch...")
         if dialog.ShowModal() == wx.ID_OK:
             branch_name = dialog.GetValue()
@@ -157,6 +170,9 @@ class HistoryTab(object):
             self.GitCommand(['branch', '-D', branch])
 
     def OnMerge(self, e):
+        if not self.contextCommit or self.mainController.selectedTab != MainWindow.TAB_HISTORY:
+            return
+
         # Default merge message
         if self.repo.current_branch:
             local_branch = self.repo.current_branch
@@ -210,6 +226,9 @@ class HistoryTab(object):
                 wx.MessageBox(warningMsg, warningTitle, style=wx.OK|wx.ICON_ERROR)
 
     def OnCherryPick(self, e):
+        if not self.contextCommit or self.mainController.selectedTab != MainWindow.TAB_HISTORY:
+            return
+
         confirmMsg = "Do you really want to cherry-pick this commit?"
         msg = wx.MessageDialog(
             self.mainWindow,
@@ -236,6 +255,9 @@ class HistoryTab(object):
                 wx.MessageBox(warningMsg, warningTitle, style=wx.OK|wx.ICON_ERROR)
 
     def OnRevert(self, e):
+        if not self.contextCommit or self.mainController.selectedTab != MainWindow.TAB_HISTORY:
+            return
+
         confirmMsg = "Do you really want to revert this commit?"
         msg = wx.MessageDialog(
             self.mainWindow,
@@ -328,8 +350,8 @@ class HistoryTab(object):
         self.contextMenu.Append(MENU_MERGE_COMMIT, "Merge into current HEAD")
 
         # Cherry-pick
-        self.contextMenu.Append(MENU_CHERRYPICK_COMMIT, "Pick this commit to HEAD (cherry-pick)")
-        self.contextMenu.Append(MENU_REVERT_COMMIT, "Pick the inverse of this commit to HEAD (revert)")
+        self.contextMenu.Append(MENU_CHERRYPICK_COMMIT, "Apply this commit to HEAD (cherry-pick)")
+        self.contextMenu.Append(MENU_REVERT_COMMIT, "Apply the inverse of this commit to HEAD (revert)")
 
     def GitCommand(self, cmd, check_submodules=False, **opts):
         try:

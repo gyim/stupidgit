@@ -17,6 +17,11 @@
 					<help></help>
 				</object>
 				<object class="separator" />
+				<object class="wxMenuItem" name="refreshMenuItem">
+					<label>Refresh\tCTRL-R</label>
+					<help></help>
+				</object>
+				<object class="separator" />
 				<object class="wxMenuItem" name="quitMenuItem">
 					<label>&amp;Quit\tCTRL-Q</label>
 					<help></help>
@@ -24,6 +29,29 @@
 			</object>
 			<object class="wxMenu" name="historyMenu">
 				<label>Versions</label>
+				<object class="wxMenuItem" name="switchMenuItem">
+					<label>Switch to Selected Version\tCTRL-SHIFT-ENTER</label>
+					<help></help>
+				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="createBranchMenuItem">
+					<label>Create Branch at Selected Commit\tCTRL-SHIFT-B</label>
+					<help></help>
+				</object>
+				<object class="wxMenuItem" name="mergeMenuItem">
+					<label>Merge Selected Commit into HEAD\tCTRL-SHIFT-M</label>
+					<help></help>
+				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="cherryPickMenuItem">
+					<label>Apply Selected Commit to HEAD (cherry-pick)\tCTRL-SHIFT-C</label>
+					<help></help>
+				</object>
+				<object class="wxMenuItem" name="revertMenuItem">
+					<label>Apply Inverse of Selected Commit to HEAD (revert)\tCTRL-SHIFT-R</label>
+					<help></help>
+				</object>
+				<object class="separator" />
 				<object class="wxMenuItem" name="gotoCommitMenuItem">
 					<label>Go to Version\tCTRL-L</label>
 					<help></help>
