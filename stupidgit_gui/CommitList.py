@@ -29,13 +29,22 @@ class CommitList(wx.ScrolledWindow):
         self.SetBackgroundColour('WHITE')
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftClick)
+        self.Bind(wx.EVT_LEFT_UP, self.OnLeftRelease)
         self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClick)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
+        self.Bind(wx.EVT_MOTION, self.OnMouseMove)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseLeave)
         self.repo = None
         self.selection = []
         self.mainRepo = None
         self.mainRepoSelection = []
         self.allowMultiple = allowMultiple
+        self.authorColumnPos = 200
+        
+        self.normalCursor = wx.NullCursor
+        self.resizeCursor = wx.StockCursor(wx.CURSOR_SIZEWE)
+        self.currentCursor = self.normalCursor
+        self.resizing = False
 
     def SetRepo(self, repo):
         # Save selection if the last repo was the main repo
@@ -224,9 +233,14 @@ class CommitList(wx.ScrolledWindow):
         commit_textcolor_highlight = wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHTTEXT)
 
         edge_pens = [ wx.Pen(wx.Colour(*c), width=2) for c in EDGE_COLORS ]
-        
+
+        background_pen = wx.NullPen
+        background_brush = wx.Brush(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+
         selection_pen = wx.NullPen
         selection_brush = wx.Brush(wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHT))
+        
+        separator_pen = wx.Pen(wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DLIGHT), width=1)
 
         ref_pens = [
             wx.Pen(wx.Colour(128,128,192,255), width=1),   # REF_BRANCH
@@ -290,6 +304,14 @@ class CommitList(wx.ScrolledWindow):
         dc.SetPen(commit_pen)
         dc.SetBrush(commit_brush)
         for node,edges in self.rows[start_row:end_row+1]:
+            # Background pen & brush
+            if self.rows.index((node, edges)) in self.selection:
+                commit_bg_pen = selection_pen
+                commit_bg_brush = selection_brush
+            else:
+                commit_bg_pen = background_pen
+                commit_bg_brush = background_brush
+
             # Draw commit circle/rectangle
             if node.style == NODE_MERGE:
                 x = node.x*COLW + offx - COMW/2
@@ -357,12 +379,49 @@ class CommitList(wx.ScrolledWindow):
                 dc.SetTextForeground(commit_textcolor_normal)
 
             dc.DrawText(safe_unicode(node.commit.short_msg), xx, yy)
+            
+            # Draw author & date
+            x = clientWidth - self.authorColumnPos
+            
+            dc.SetBrush(commit_bg_brush)
+            
+            dc.SetPen(commit_bg_pen)
+            xx, yy = self.CalcScrolledPosition(x, y)
+            dc.DrawRectangle(xx-4, yy, clientWidth-x+4, LINH)
+            
+            dc.SetPen(separator_pen)
+            dc.DrawLine(xx, yy, xx, yy+LINH)
+            
+            dc.SetPen(commit_pen)
+            dc.SetBrush(commit_brush)
+            author_text = u'%s, %s' % (safe_unicode(node.commit.author_name), safe_unicode(node.commit.author_date))
+            dc.DrawText(author_text, xx+4, yy)
 
         dc.EndDrawing()
+
+    def OnMouseMove(self, e):
+        if self.resizing:
+            self.authorColumnPos = self.GetClientSize().GetWidth() - e.m_x
+            self.Refresh()
+        else:
+            pos = self.GetClientSize().GetWidth() - self.authorColumnPos
+            if pos-2 <= e.m_x <= pos+2:
+                if self.currentCursor != self.resizeCursor:
+                    self.SetCursor(self.resizeCursor)
+                    self.currentCursor = self.resizeCursor
+            else:
+                if self.currentCursor != self.normalCursor:
+                    self.SetCursor(self.normalCursor)
+                    self.currentCursor = self.normalCursor
 
     def OnLeftClick(self, e):
         e.StopPropagation()
         self.SetFocus()
+        
+        # Column resize
+        if self.currentCursor == self.resizeCursor:
+            self.resizing = True
+            return
 
         # Determine row number
         x, y = self.CalcUnscrolledPosition(*(e.GetPosition()))
@@ -395,6 +454,14 @@ class CommitList(wx.ScrolledWindow):
 
         # Redraw window
         self.Refresh()
+
+    def OnLeftRelease(self, e):
+        e.StopPropagation()
+        self.resizing = False
+
+    def OnMouseLeave(self, e):
+        e.StopPropagation()
+        self.resizing = False
 
     def OnRightClick(self, e):
         e.StopPropagation()

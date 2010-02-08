@@ -35,6 +35,7 @@ class HistoryTab(object):
         browserSizer = browserPanel.GetSizer()
         
         self.commitList = CommitList(browserPanel, -1, False)
+        self.commitList.authorColumnPos = self.mainController.config.ReadInt('CommitListAuthorColumnPosition', 200)
         self.commitList.Bind(EVT_COMMITLIST_SELECT, self.OnCommitSelected, self.commitList)
         self.commitList.Bind(EVT_COMMITLIST_RIGHTCLICK, self.OnCommitRightClick, self.commitList)
         browserSizer.Add(self.commitList, 1, wx.EXPAND)
@@ -322,6 +323,7 @@ class HistoryTab(object):
 
     def SaveState(self):
         self.mainController.config.WriteInt('HistorySplitterPosition', self.splitter.GetSashPosition())
+        self.mainController.config.WriteInt('CommitListAuthorColumnPosition', self.commitList.authorColumnPos)
 
     def SetupContextMenu(self, commit):
         branches = self.repo.branches_by_sha1.get(commit.sha1, [])

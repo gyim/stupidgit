@@ -288,7 +288,7 @@ class Repository(object):
         return None
 
     def get_log(self, args=[]):
-        log = self.run_cmd(['log', '-z', '--pretty=format:%H%n%h%n%P%n%T%n%an%n%ae%n%aD%n%s%n%b']+args)
+        log = self.run_cmd(['log', '-z', '--date=relative', '--pretty=format:%H%n%h%n%P%n%T%n%an%n%ae%n%ad%n%s%n%b']+args)
 
         commit_texts = log.split('\x00')
         commit_texts.reverse()
