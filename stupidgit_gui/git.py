@@ -669,7 +669,6 @@ class FetchThread(threading.Thread):
             else:
                 line += c
 
-            if self.process.poll() != None: break
             c = self.process.stderr.read(1)
 
         self.process.wait()
