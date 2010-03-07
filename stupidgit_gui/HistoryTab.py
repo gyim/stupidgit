@@ -304,16 +304,21 @@ class HistoryTab(object):
 
         msg = wx.TextEntryDialog(
             self.mainWindow,
-            "Enter commit ID:",
+            "Enter reference name or commit ID:",
             "Go to Version",
             "",
             wx.ICON_QUESTION | wx.OK | wx.CANCEL
         )
         msg.ShowModal()
-        commit_id = msg.GetValue()
+        refname = msg.GetValue()
         
-        if commit_id:
-            error = self.commitList.GotoCommit(commit_id)
+        if refname:
+            commit_id = self.repo.run_cmd(['rev-parse', refname]).strip()
+            if commit_id:
+                error = self.commitList.GotoCommit(commit_id)
+            else:
+                error = "Cannot find reference or commit ID: '%s'" % refname
+
             if error:
                 wx.MessageBox(
                     error,
