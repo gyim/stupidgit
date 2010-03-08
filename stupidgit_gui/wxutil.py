@@ -14,6 +14,9 @@ def _xrc():
 def LoadFrame(parent, frameName):
     return _xrc().LoadFrame(parent, frameName)
 
+def LoadDialog(parent, frameName):
+    return _xrc().LoadDialog(parent, frameName)
+
 def SetupEvents(parent, eventHandlers):
     for name, event, handler in eventHandlers:
         if name:

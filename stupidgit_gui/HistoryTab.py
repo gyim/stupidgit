@@ -7,6 +7,7 @@ from DiffViewer import DiffViewer
 from SwitchWizard import SwitchWizard
 from Wizard import *
 from FetchDialogs import FetchSetupDialog, FetchProgressDialog
+from PushDialogs import PushSetupDialog
 import git
 from git import GitError
 from util import *
@@ -63,6 +64,7 @@ class HistoryTab(object):
         # Other events
         SetupEvents(self.mainWindow, [
             ('fetchTool', wx.EVT_TOOL, self.OnFetch),
+            ('pushTool', wx.EVT_TOOL, self.OnPushCommit),
             ('switchTool', wx.EVT_TOOL, self.OnSwitchToCommit),
             ('switchMenuItem', wx.EVT_MENU, self.OnSwitchToCommit),
             ('createBranchMenuItem', wx.EVT_MENU, self.OnCreateBranch),
@@ -297,6 +299,21 @@ class HistoryTab(object):
 
     def OnFetchProgress(self, eventType, eventParam):
         print 'FETCH CALLBACK:', eventType, eventParam
+
+    def OnPushCommit(self, e):
+        # Require context commit
+        if not self.contextCommit or self.mainController.selectedTab != MainWindow.TAB_HISTORY:
+            wx.MessageBox(
+                'Select the commit to be pushed first!',
+                'Warning',
+                style=wx.OK|wx.ICON_WARNING
+            )
+            return
+        
+        # Show dialog
+        setupDialog = PushSetupDialog(self.mainWindow, -1, self.repo)
+        if setupDialog.ShowModal() == wx.ID_OK:
+            print 'PUSH'
 
     def OnGotoCommit(self, e):
         if self.mainController.selectedTab != MainWindow.TAB_HISTORY:
