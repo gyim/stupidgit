@@ -1,6 +1,7 @@
 import wx
 from wxutil import *
 from util import *
+from git import *
 
 class PushSetupDialog(object):
     def __init__(self, parent, id, repo):
@@ -72,7 +73,6 @@ class PushSetupDialog(object):
     
     def OnBranchText(self, e):
         self.selectedBranch = self.branchEntry.GetValue()
-        print self.selectedBranch
     
     def OnForcePush(self, e):
         self.forcePush = self.forcePushCheckbox.GetValue()
@@ -80,3 +80,53 @@ class PushSetupDialog(object):
     def HideWarning(self):
         self.warningLabel.Hide()
         self.detailsButton.Hide()
+
+class PushProgressDialog(object):
+    def __init__(self, parent, id, repo, remote, commit, remoteBranch, forcePush):
+        self.parent = parent
+        self.repo = repo
+        self.remote = remote
+        self.commit = commit
+        self.remoteBranch = remoteBranch
+        self.forcePush = forcePush
+        
+        # Setup dialog
+        self.dialog = LoadDialog(parent, 'PushProgressDialog')
+        self.dialog.SetMinSize((350, -1))
+        self.dialog.SetTitle('Pushing to %s...' % remote)
+        
+        # Widgets
+        self.progressLabel = GetWidget(self.dialog, 'progressLabel')
+        self.progressBar = GetWidget(self.dialog, 'progressBar')
+        SetupEvents(self.dialog, [
+            ('cancelButton', wx.EVT_BUTTON, self.OnCancel)
+        ])
+    
+    def ShowModal(self):
+        self.progressLabel.SetLabel('Connecting to remote repository...')
+        self.progressBar.Pulse()
+        self.dialog.Fit()
+        
+        self.pushThread = self.repo.push_bg(self.remote, self.commit, self.remoteBranch, self.forcePush, self.ProgressCallback)
+        return self.dialog.ShowModal()
+    
+    def ProgressCallback(self, event, param):
+        if event == TRANSFER_COMPRESSING:
+            wx.CallAfter(self.progressLabel.SetLabel, "Compressing objects...")
+            wx.CallAfter(self.progressBar.SetValue, param)
+        elif event == TRANSFER_WRITING:
+            wx.CallAfter(self.progressLabel.SetLabel, "Writing objects...")
+            wx.CallAfter(self.progressBar.SetValue, param)
+        elif event == TRANSFER_ENDED:
+            wx.CallAfter(self.OnPushEnded, param)
+    
+    def OnPushEnded(self, error):
+        if error:
+            wx.MessageBox(safe_unicode(error), 'Error', style=wx.OK|wx.ICON_ERROR)
+            self.dialog.EndModal(0)
+        else:
+            self.dialog.EndModal(1)
+    
+    def OnCancel(self, e):
+        self.pushThread.abort()
+        self.dialog.EndModal(0)

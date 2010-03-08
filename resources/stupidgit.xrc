@@ -427,4 +427,50 @@
 			</object>
 		</object>
 	</object>
+	<object class="wxDialog" name="PushProgressDialog">
+		<style>wxDEFAULT_DIALOG_STYLE</style>
+		<size>300,150</size>
+		<title></title>
+		<object class="wxBoxSizer">
+			<orient>wxVERTICAL</orient>
+			<object class="sizeritem">
+				<option>1</option>
+				<flag>wxEXPAND | wxALL</flag>
+				<border>10</border>
+				<object class="wxPanel" name="m_panel9">
+					<style>wxTAB_TRAVERSAL</style>
+					<object class="wxBoxSizer">
+						<orient>wxVERTICAL</orient>
+						<object class="sizeritem">
+							<option>0</option>
+							<flag>wxALL</flag>
+							<border>5</border>
+							<object class="wxStaticText" name="progressLabel">
+								<label>Connecting...</label>
+							</object>
+						</object>
+						<object class="sizeritem">
+							<option>0</option>
+							<flag>wxALL|wxEXPAND</flag>
+							<border>5</border>
+							<object class="wxGauge" name="progressBar">
+								<style>wxGA_HORIZONTAL</style>
+								<range>100</range>
+								<value>0</value>
+							</object>
+						</object>
+						<object class="sizeritem">
+							<option>0</option>
+							<flag>wxALIGN_RIGHT|wxALL</flag>
+							<border>5</border>
+							<object class="wxButton" name="cancelButton">
+								<label>Cancel</label>
+								<default>0</default>
+							</object>
+						</object>
+					</object>
+				</object>
+			</object>
+		</object>
+	</object>
 </resource>

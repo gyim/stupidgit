@@ -7,7 +7,7 @@ from DiffViewer import DiffViewer
 from SwitchWizard import SwitchWizard
 from Wizard import *
 from FetchDialogs import FetchSetupDialog, FetchProgressDialog
-from PushDialogs import PushSetupDialog
+from PushDialogs import PushSetupDialog, PushProgressDialog
 import git
 from git import GitError
 from util import *
@@ -310,10 +310,18 @@ class HistoryTab(object):
             )
             return
         
-        # Show dialog
+        # Progress dialog
         setupDialog = PushSetupDialog(self.mainWindow, -1, self.repo)
         if setupDialog.ShowModal() == wx.ID_OK:
-            print 'PUSH'
+            remote = setupDialog.selectedRemote
+            commit = self.contextCommit
+            branch = setupDialog.selectedBranch
+            forcePush = setupDialog.forcePush
+            
+            if len(remote) and len(branch):
+                progressDialog = PushProgressDialog(self.mainWindow, -1, self.repo, remote, commit, branch, forcePush)
+                if progressDialog.ShowModal():
+                    self.mainController.ReloadRepo()
 
     def OnGotoCommit(self, e):
         if self.mainController.selectedTab != MainWindow.TAB_HISTORY:

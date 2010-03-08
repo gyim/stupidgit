@@ -174,18 +174,18 @@ class FetchProgressDialog(wx.Dialog):
         self.repoIndex += 1
 
     def ProgressCallback(self, event, param):
-        if event == FETCH_COUNTING:
+        if event == TRANSFER_COUNTING:
             wx.CallAfter(self.progressText.SetLabel, "Counting objects: %d" % param)
-        elif event == FETCH_COMPRESSING:
+        elif event == TRANSFER_COMPRESSING:
             wx.CallAfter(self.progressText.SetLabel, "Compressing objects...")
             wx.CallAfter(self.progressBar.SetValue, param)
-        elif event == FETCH_RECEIVING:
+        elif event == TRANSFER_RECEIVING:
             wx.CallAfter(self.progressText.SetLabel, "Receiving objects...")
             wx.CallAfter(self.progressBar.SetValue, param)
-        elif event == FETCH_RESOLVING:
+        elif event == TRANSFER_RESOLVING:
             wx.CallAfter(self.progressText.SetLabel, "Resolving deltas...")
             wx.CallAfter(self.progressBar.SetValue, param)
-        elif event == FETCH_ENDED:
+        elif event == TRANSFER_ENDED:
             wx.CallAfter(self.OnFetchEnded, param)
 
     def OnFetchEnded(self, param):

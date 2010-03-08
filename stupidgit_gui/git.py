@@ -496,6 +496,12 @@ class Repository(object):
 
         return t
 
+    def push_bg(self, remote, commit, remoteBranch, forcePush, callbackFunc):
+        t = PushThread(self, remote, commit, remoteBranch, forcePush, callbackFunc)
+        t.start()
+
+        return t
+
 class Commit(object):
     def __init__(self, repo):
         self.repo = repo
@@ -604,54 +610,42 @@ class ConfigFile(object):
         else:
             return None
 
-FETCH_CONNECTED     = 0
-FETCH_COUNTING      = 1
-FETCH_COMPRESSING   = 2
-FETCH_RECEIVING     = 3
-FETCH_RESOLVING     = 4
-FETCH_ENDED         = 5
-class FetchThread(threading.Thread):
-    def __init__(self, repo, remote, callback_func, fetch_tags=False):
+TRANSFER_COUNTING      = 0
+TRANSFER_COMPRESSING   = 1
+TRANSFER_RECEIVING     = 2
+TRANSFER_WRITING       = 3
+TRANSFER_RESOLVING     = 4
+TRANSFER_ENDED         = 5
+class ObjectTransferThread(threading.Thread):
+    def __init__(self, repo, callback_func):
         threading.Thread.__init__(self)
-
+        
         # Parameters
         self.repo = repo
-        self.remote = remote
         self.callback_func = callback_func
-        self.fetch_tags = fetch_tags
 
         # Regular expressions for progress indicator
         self.counting_expr      = re.compile(r'.*Counting objects:\s*([0-9]+)')
         self.compressing_expr   = re.compile(r'.*Compressing objects:\s*([0-9]+)%')
         self.receiving_expr     = re.compile(r'.*Receiving objects:\s*([0-9]+)%')
+        self.writing_expr       = re.compile(r'.*Writing objects:\s*([0-9]+)%')
         self.resolving_expr     = re.compile(r'.*Resolving deltas:\s*([0-9]+)%')
 
         self.progress_exprs = (
-            (self.counting_expr, FETCH_COUNTING),
-            (self.compressing_expr, FETCH_COMPRESSING),
-            (self.receiving_expr, FETCH_RECEIVING),
-            (self.resolving_expr, FETCH_RESOLVING)
+            (self.counting_expr, TRANSFER_COUNTING),
+            (self.compressing_expr, TRANSFER_COMPRESSING),
+            (self.receiving_expr, TRANSFER_RECEIVING),
+            (self.writing_expr, TRANSFER_WRITING),
+            (self.resolving_expr, TRANSFER_RESOLVING)
         )
 
-        # Regular expressions for remote refs
-        self.branches = {}
-        self.tags = {}
-        self.branch_expr    = re.compile(r'([0-9a-f]{40}) refs\/heads\/([a-zA-Z0-9_.\-]+)')
-        self.tag_expr       = re.compile(r'([0-9a-f]{40}) refs\/tags\/([a-zA-Z0-9_.\-]+)')
-
-        self.ref_exprs = (
-            (self.branch_expr, self.branches),
-            (self.tag_expr, self.tags)
-        )
-
-    def run(self):
+    def run(self, cmd):
         # Initial state
-        self.connected = False
         self.error_msg = 'Unknown error occured'
         self.aborted = False
 
         # Run git
-        self.process = self.repo.run_cmd(['fetch-pack', '-v', '--all', self.repo.remotes[self.remote]], run_bg=True, setup_askpass=True)
+        self.process = self.repo.run_cmd(cmd, run_bg=True, setup_askpass=True)
         self.process.stdin.close()
 
         # Read stdout from a different thread (select.select() does not work
@@ -682,36 +676,17 @@ class FetchThread(threading.Thread):
         if self.aborted:
             return
         elif self.process.returncode == 0:
-            # Update remote branches
-            for branch, sha1 in self.branches.iteritems():
-                self.repo.run_cmd(['update-ref', 'refs/remotes/%s/%s' % (self.remote, branch), sha1])
-
-            # Update tags
-            if self.fetch_tags:
-                for tag, sha1 in self.tags.iteritems():
-                    self.repo.run_cmd(['update-ref', 'refs/tags/%s' % tag, sha1])
-
-            self.callback_func(FETCH_ENDED, (self.branches, self.tags))
+            result = self.transfer_ended()
+            self.callback_func(TRANSFER_ENDED, result)
         else:
-            self.callback_func(FETCH_ENDED, self.error_msg)
+            self.callback_func(TRANSFER_ENDED, self.error_msg)
 
     def parse_line(self, line):
-        # Connection established
-        if not self.connected and line.startswith('want '):
-            self.callback_func(FETCH_CONNECTED, None)
-            self.connected = True
-
         # Progress indicators
         for reg, event in self.progress_exprs:
             m = reg.match(line)
             if m:
                 self.callback_func(event, int(m.group(1)))
-
-        # Remote refs
-        for reg, refs in self.ref_exprs:
-            m = reg.match(line)
-            if m:
-                refs[m.group(2)] = m.group(1)
 
         # Fatal error
         if line.startswith('fatal:'):
@@ -728,6 +703,77 @@ class FetchThread(threading.Thread):
             self.process.kill()
         except:
             pass
+
+class FetchThread(ObjectTransferThread):
+    def __init__(self, repo, remote, callback_func, fetch_tags=False):
+        ObjectTransferThread.__init__(self, repo, callback_func)
+
+        # Parameters
+        self.remote = remote
+        self.fetch_tags = fetch_tags
+
+        # Regular expressions for remote refs
+        self.branches = {}
+        self.tags = {}
+        self.branch_expr    = re.compile(r'([0-9a-f]{40}) refs\/heads\/([a-zA-Z0-9_.\-]+)')
+        self.tag_expr       = re.compile(r'([0-9a-f]{40}) refs\/tags\/([a-zA-Z0-9_.\-]+)')
+
+        self.ref_exprs = (
+            (self.branch_expr, self.branches),
+            (self.tag_expr, self.tags)
+        )
+
+    def run(self):
+        ObjectTransferThread.run(self, ['fetch-pack', '-v', '--all', self.repo.remotes[self.remote]])
+    
+    def transfer_ended(self):
+        # Update remote branches
+        for branch, sha1 in self.branches.iteritems():
+            self.repo.run_cmd(['update-ref', 'refs/remotes/%s/%s' % (self.remote, branch), sha1])
+
+        # Update tags
+        if self.fetch_tags:
+            for tag, sha1 in self.tags.iteritems():
+                self.repo.run_cmd(['update-ref', 'refs/tags/%s' % tag, sha1])
+        
+        return (self.branches, self.tags)
+
+    def parse_line(self, line):
+        ObjectTransferThread.parse_line(self, line)
+
+        # Remote refs
+        for reg, refs in self.ref_exprs:
+            m = reg.match(line)
+            if m:
+                refs[m.group(2)] = m.group(1)
+
+class PushThread(ObjectTransferThread):
+    def __init__(self, repo, remote, commit, remote_branch, force_push, callback_func):
+        ObjectTransferThread.__init__(self, repo, callback_func)
+
+        # Parameters
+        self.remote = remote
+        self.commit = commit
+        self.remote_branch = remote_branch
+        self.force_push = force_push
+
+    def run(self):
+        if self.force_push:
+            push_cmd = ['push', '-f']
+        else:
+            push_cmd = ['push']
+
+        cmd = push_cmd + [self.remote, '%s:refs/heads/%s' % (self.commit.sha1, self.remote_branch)]
+        ObjectTransferThread.run(self, cmd)
+
+    def parse_line(self, line):
+        ObjectTransferThread.parse_line(self, line)
+
+        if line.startswith(' ! [rejected]'):
+            self.error_msg = 'The pushed commit is non-fast forward.'
+
+    def transfer_ended(self):
+        return None
 
 # Utility functions
 def diff_for_untracked_file(filename):
