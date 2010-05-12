@@ -10,7 +10,7 @@ from git import Repository
 from MainWindow import *
 from PasswordDialog import *
 
-class StupidGitApp(wx.App):
+class StupidGitApp(wx.PySimpleApp):
     def InitApp(self):
         self.SetAppName('StupidGit')
         wx.TheApp = self
