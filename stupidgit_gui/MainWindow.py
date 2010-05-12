@@ -60,9 +60,15 @@ class MainWindow(object):
         # Create module choice
         toolbar = self.frame.GetToolBar()
         self.moduleChoice = wx.Choice(toolbar, -1)
-        self.moduleChoice.SetSize((200,-1))
+        if sys.platform == 'darwin':
+            # Don't ask me why, but that's how the control is positioned to middle...
+            self.moduleChoice.SetSize((200,15))
+        else:
+            self.moduleChoice.SetSize((200,-1))
+        
         self.moduleChoice.Bind(wx.EVT_CHOICE, self.OnModuleChosen)
         toolbar.InsertControl(0, self.moduleChoice)
+        toolbar.Realize()
         
         # Setup events
         SetupEvents(self.frame, [
