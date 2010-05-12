@@ -7,6 +7,7 @@
         <property name="disconnect_events">1</property>
         <property name="encoding">UTF-8</property>
         <property name="event_generation">connect</property>
+        <property name="event_handler">impl_virtual</property>
         <property name="file">stupidgit</property>
         <property name="first_id">1000</property>
         <property name="help_provider">none</property>
@@ -18,7 +19,7 @@
         <property name="relative_path">1</property>
         <property name="use_enum">0</property>
         <property name="use_microsoft_bom">0</property>
-        <object class="Frame" expanded="0">
+        <object class="Frame" expanded="1">
             <property name="bg"></property>
             <property name="center"></property>
             <property name="context_help"></property>
@@ -37,6 +38,10 @@
             <property name="subclass"></property>
             <property name="title">StupidGit</property>
             <property name="tooltip"></property>
+            <property name="validator_data_type"></property>
+            <property name="validator_style">wxFILTER_NONE</property>
+            <property name="validator_type">wxDefaultValidator</property>
+            <property name="validator_variable"></property>
             <property name="window_extra_style"></property>
             <property name="window_name"></property>
             <property name="window_style">wxTAB_TRAVERSAL</property>
@@ -70,7 +75,7 @@
             <event name="OnSetFocus"></event>
             <event name="OnSize"></event>
             <event name="OnUpdateUI"></event>
-            <object class="wxMenuBar" expanded="1">
+            <object class="wxMenuBar" expanded="0">
                 <property name="bg"></property>
                 <property name="context_help"></property>
                 <property name="enabled">1</property>
@@ -88,6 +93,10 @@
                 <property name="style"></property>
                 <property name="subclass"></property>
                 <property name="tooltip"></property>
+                <property name="validator_data_type"></property>
+                <property name="validator_style">wxFILTER_NONE</property>
+                <property name="validator_type">wxDefaultValidator</property>
+                <property name="validator_variable"></property>
                 <property name="window_extra_style"></property>
                 <property name="window_name"></property>
                 <property name="window_style"></property>
@@ -114,7 +123,7 @@
                 <event name="OnSetFocus"></event>
                 <event name="OnSize"></event>
                 <event name="OnUpdateUI"></event>
-                <object class="wxMenu" expanded="1">
+                <object class="wxMenu" expanded="0">
                     <property name="label">Repository</property>
                     <property name="name">repositoryMenu</property>
                     <property name="permission">protected</property>
@@ -149,6 +158,7 @@
                         <event name="OnUpdateUI"></event>
                     </object>
                     <object class="separator" expanded="1">
+                        <property name="name">m_separator1</property>
                         <property name="permission">none</property>
                     </object>
                     <object class="wxMenuItem" expanded="1">
@@ -167,6 +177,7 @@
                         <event name="OnUpdateUI"></event>
                     </object>
                     <object class="separator" expanded="1">
+                        <property name="name">m_separator2</property>
                         <property name="permission">none</property>
                     </object>
                     <object class="wxMenuItem" expanded="1">
@@ -205,6 +216,7 @@
                         <event name="OnUpdateUI"></event>
                     </object>
                     <object class="separator" expanded="1">
+                        <property name="name">m_separator3</property>
                         <property name="permission">none</property>
                     </object>
                     <object class="wxMenuItem" expanded="1">
@@ -238,6 +250,7 @@
                         <event name="OnUpdateUI"></event>
                     </object>
                     <object class="separator" expanded="1">
+                        <property name="name">m_separator4</property>
                         <property name="permission">none</property>
                     </object>
                     <object class="wxMenuItem" expanded="1">
@@ -271,6 +284,7 @@
                         <event name="OnUpdateUI"></event>
                     </object>
                     <object class="separator" expanded="1">
+                        <property name="name">m_separator5</property>
                         <property name="permission">none</property>
                     </object>
                     <object class="wxMenuItem" expanded="1">
@@ -339,6 +353,7 @@
                         <event name="OnUpdateUI"></event>
                     </object>
                     <object class="separator" expanded="1">
+                        <property name="name">m_separator6</property>
                         <property name="permission">none</property>
                     </object>
                     <object class="wxMenuItem" expanded="1">
@@ -434,6 +449,10 @@
                 <property name="style">wxTB_HORIZONTAL|wxTB_TEXT</property>
                 <property name="subclass"></property>
                 <property name="tooltip"></property>
+                <property name="validator_data_type"></property>
+                <property name="validator_style">wxFILTER_NONE</property>
+                <property name="validator_type">wxDefaultValidator</property>
+                <property name="validator_variable"></property>
                 <property name="window_extra_style"></property>
                 <property name="window_name"></property>
                 <property name="window_style"></property>
@@ -460,52 +479,6 @@
                 <event name="OnSetFocus"></event>
                 <event name="OnSize"></event>
                 <event name="OnUpdateUI"></event>
-                <object class="wxChoice" expanded="1">
-                    <property name="bg"></property>
-                    <property name="choices"></property>
-                    <property name="context_help"></property>
-                    <property name="enabled">1</property>
-                    <property name="fg"></property>
-                    <property name="font"></property>
-                    <property name="hidden">0</property>
-                    <property name="id">wxID_ANY</property>
-                    <property name="maximum_size"></property>
-                    <property name="minimum_size"></property>
-                    <property name="name">moduleChoice</property>
-                    <property name="permission">protected</property>
-                    <property name="pos"></property>
-                    <property name="selection">0</property>
-                    <property name="size">-1,20</property>
-                    <property name="subclass"></property>
-                    <property name="tooltip"></property>
-                    <property name="window_extra_style"></property>
-                    <property name="window_name"></property>
-                    <property name="window_style"></property>
-                    <event name="OnChar"></event>
-                    <event name="OnChoice"></event>
-                    <event name="OnEnterWindow"></event>
-                    <event name="OnEraseBackground"></event>
-                    <event name="OnKeyDown"></event>
-                    <event name="OnKeyUp"></event>
-                    <event name="OnKillFocus"></event>
-                    <event name="OnLeaveWindow"></event>
-                    <event name="OnLeftDClick"></event>
-                    <event name="OnLeftDown"></event>
-                    <event name="OnLeftUp"></event>
-                    <event name="OnMiddleDClick"></event>
-                    <event name="OnMiddleDown"></event>
-                    <event name="OnMiddleUp"></event>
-                    <event name="OnMotion"></event>
-                    <event name="OnMouseEvents"></event>
-                    <event name="OnMouseWheel"></event>
-                    <event name="OnPaint"></event>
-                    <event name="OnRightDClick"></event>
-                    <event name="OnRightDown"></event>
-                    <event name="OnRightUp"></event>
-                    <event name="OnSetFocus"></event>
-                    <event name="OnSize"></event>
-                    <event name="OnUpdateUI"></event>
-                </object>
                 <object class="toolSeparator" expanded="1" />
                 <object class="tool" expanded="1">
                     <property name="bitmap">switch.png; Load From File</property>
@@ -622,6 +595,10 @@
                         <property name="style"></property>
                         <property name="subclass"></property>
                         <property name="tooltip"></property>
+                        <property name="validator_data_type"></property>
+                        <property name="validator_style">wxFILTER_NONE</property>
+                        <property name="validator_type">wxDefaultValidator</property>
+                        <property name="validator_variable"></property>
                         <property name="window_extra_style"></property>
                         <property name="window_name"></property>
                         <property name="window_style"></property>
@@ -670,6 +647,10 @@
                                 <property name="size"></property>
                                 <property name="subclass"></property>
                                 <property name="tooltip"></property>
+                                <property name="validator_data_type"></property>
+                                <property name="validator_style">wxFILTER_NONE</property>
+                                <property name="validator_type">wxDefaultValidator</property>
+                                <property name="validator_variable"></property>
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style">wxTAB_TRAVERSAL</property>
@@ -727,6 +708,10 @@
                                             <property name="style">wxSP_LIVE_UPDATE</property>
                                             <property name="subclass"></property>
                                             <property name="tooltip"></property>
+                                            <property name="validator_data_type"></property>
+                                            <property name="validator_style">wxFILTER_NONE</property>
+                                            <property name="validator_type">wxDefaultValidator</property>
+                                            <property name="validator_variable"></property>
                                             <property name="window_extra_style"></property>
                                             <property name="window_name"></property>
                                             <property name="window_style"></property>
@@ -774,6 +759,10 @@
                                                     <property name="size"></property>
                                                     <property name="subclass"></property>
                                                     <property name="tooltip"></property>
+                                                    <property name="validator_data_type"></property>
+                                                    <property name="validator_style">wxFILTER_NONE</property>
+                                                    <property name="validator_type">wxDefaultValidator</property>
+                                                    <property name="validator_variable"></property>
                                                     <property name="window_extra_style"></property>
                                                     <property name="window_name"></property>
                                                     <property name="window_style">wxTAB_TRAVERSAL</property>
@@ -825,6 +814,10 @@
                                                     <property name="size"></property>
                                                     <property name="subclass"></property>
                                                     <property name="tooltip"></property>
+                                                    <property name="validator_data_type"></property>
+                                                    <property name="validator_style">wxFILTER_NONE</property>
+                                                    <property name="validator_type">wxDefaultValidator</property>
+                                                    <property name="validator_variable"></property>
                                                     <property name="window_extra_style"></property>
                                                     <property name="window_name"></property>
                                                     <property name="window_style">wxTAB_TRAVERSAL</property>
@@ -884,6 +877,10 @@
                                 <property name="size"></property>
                                 <property name="subclass"></property>
                                 <property name="tooltip"></property>
+                                <property name="validator_data_type"></property>
+                                <property name="validator_style">wxFILTER_NONE</property>
+                                <property name="validator_type">wxDefaultValidator</property>
+                                <property name="validator_variable"></property>
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style">wxTAB_TRAVERSAL</property>
@@ -941,6 +938,10 @@
                                             <property name="style">wxSP_LIVE_UPDATE</property>
                                             <property name="subclass"></property>
                                             <property name="tooltip"></property>
+                                            <property name="validator_data_type"></property>
+                                            <property name="validator_style">wxFILTER_NONE</property>
+                                            <property name="validator_type">wxDefaultValidator</property>
+                                            <property name="validator_variable"></property>
                                             <property name="window_extra_style"></property>
                                             <property name="window_name"></property>
                                             <property name="window_style"></property>
@@ -988,6 +989,10 @@
                                                     <property name="size"></property>
                                                     <property name="subclass"></property>
                                                     <property name="tooltip"></property>
+                                                    <property name="validator_data_type"></property>
+                                                    <property name="validator_style">wxFILTER_NONE</property>
+                                                    <property name="validator_type">wxDefaultValidator</property>
+                                                    <property name="validator_variable"></property>
                                                     <property name="window_extra_style"></property>
                                                     <property name="window_name"></property>
                                                     <property name="window_style">wxTAB_TRAVERSAL</property>
@@ -1053,6 +1058,10 @@
                                                                 <property name="size"></property>
                                                                 <property name="subclass"></property>
                                                                 <property name="tooltip"></property>
+                                                                <property name="validator_data_type"></property>
+                                                                <property name="validator_style">wxFILTER_NONE</property>
+                                                                <property name="validator_type">wxDefaultValidator</property>
+                                                                <property name="validator_variable"></property>
                                                                 <property name="window_extra_style"></property>
                                                                 <property name="window_name"></property>
                                                                 <property name="window_style">wxTAB_TRAVERSAL</property>
@@ -1107,6 +1116,10 @@
                                                                             <property name="style"></property>
                                                                             <property name="subclass"></property>
                                                                             <property name="tooltip"></property>
+                                                                            <property name="validator_data_type"></property>
+                                                                            <property name="validator_style">wxFILTER_NONE</property>
+                                                                            <property name="validator_type">wxDefaultValidator</property>
+                                                                            <property name="validator_variable"></property>
                                                                             <property name="window_extra_style"></property>
                                                                             <property name="window_name"></property>
                                                                             <property name="window_style"></property>
@@ -1159,6 +1172,10 @@
                                                                             <property name="style"></property>
                                                                             <property name="subclass"></property>
                                                                             <property name="tooltip"></property>
+                                                                            <property name="validator_data_type"></property>
+                                                                            <property name="validator_style">wxFILTER_NONE</property>
+                                                                            <property name="validator_type">wxDefaultValidator</property>
+                                                                            <property name="validator_variable"></property>
                                                                             <property name="window_extra_style"></property>
                                                                             <property name="window_name"></property>
                                                                             <property name="window_style"></property>
@@ -1221,6 +1238,10 @@
                                                                             <property name="style"></property>
                                                                             <property name="subclass"></property>
                                                                             <property name="tooltip"></property>
+                                                                            <property name="validator_data_type"></property>
+                                                                            <property name="validator_style">wxFILTER_NONE</property>
+                                                                            <property name="validator_type">wxDefaultValidator</property>
+                                                                            <property name="validator_variable"></property>
                                                                             <property name="window_extra_style"></property>
                                                                             <property name="window_name"></property>
                                                                             <property name="window_style"></property>
@@ -1287,6 +1308,10 @@
                                                     <property name="size"></property>
                                                     <property name="subclass"></property>
                                                     <property name="tooltip"></property>
+                                                    <property name="validator_data_type"></property>
+                                                    <property name="validator_style">wxFILTER_NONE</property>
+                                                    <property name="validator_type">wxDefaultValidator</property>
+                                                    <property name="validator_variable"></property>
                                                     <property name="window_extra_style"></property>
                                                     <property name="window_name"></property>
                                                     <property name="window_style">wxTAB_TRAVERSAL</property>
@@ -1347,6 +1372,10 @@
                 <property name="style">wxST_SIZEGRIP</property>
                 <property name="subclass"></property>
                 <property name="tooltip"></property>
+                <property name="validator_data_type"></property>
+                <property name="validator_style">wxFILTER_NONE</property>
+                <property name="validator_type">wxDefaultValidator</property>
+                <property name="validator_variable"></property>
                 <property name="window_extra_style"></property>
                 <property name="window_name"></property>
                 <property name="window_style"></property>
@@ -1394,6 +1423,10 @@
             <property name="subclass"></property>
             <property name="title">Push Commit...</property>
             <property name="tooltip"></property>
+            <property name="validator_data_type"></property>
+            <property name="validator_style">wxFILTER_NONE</property>
+            <property name="validator_type">wxDefaultValidator</property>
+            <property name="validator_variable"></property>
             <property name="window_extra_style"></property>
             <property name="window_name"></property>
             <property name="window_style"></property>
@@ -1452,6 +1485,10 @@
                         <property name="size"></property>
                         <property name="subclass"></property>
                         <property name="tooltip"></property>
+                        <property name="validator_data_type"></property>
+                        <property name="validator_style">wxFILTER_NONE</property>
+                        <property name="validator_type">wxDefaultValidator</property>
+                        <property name="validator_variable"></property>
                         <property name="window_extra_style"></property>
                         <property name="window_name"></property>
                         <property name="window_style">wxTAB_TRAVERSAL</property>
@@ -1514,6 +1551,10 @@
                                             <property name="style"></property>
                                             <property name="subclass"></property>
                                             <property name="tooltip"></property>
+                                            <property name="validator_data_type"></property>
+                                            <property name="validator_style">wxFILTER_NONE</property>
+                                            <property name="validator_type">wxDefaultValidator</property>
+                                            <property name="validator_variable"></property>
                                             <property name="window_extra_style"></property>
                                             <property name="window_name"></property>
                                             <property name="window_style"></property>
@@ -1565,6 +1606,10 @@
                                             <property name="size"></property>
                                             <property name="subclass"></property>
                                             <property name="tooltip"></property>
+                                            <property name="validator_data_type"></property>
+                                            <property name="validator_style">wxFILTER_NONE</property>
+                                            <property name="validator_type">wxDefaultValidator</property>
+                                            <property name="validator_variable"></property>
                                             <property name="window_extra_style"></property>
                                             <property name="window_name"></property>
                                             <property name="window_style"></property>
@@ -1627,6 +1672,10 @@
                                             <property name="style"></property>
                                             <property name="subclass"></property>
                                             <property name="tooltip"></property>
+                                            <property name="validator_data_type"></property>
+                                            <property name="validator_style">wxFILTER_NONE</property>
+                                            <property name="validator_type">wxDefaultValidator</property>
+                                            <property name="validator_variable"></property>
                                             <property name="window_extra_style"></property>
                                             <property name="window_name"></property>
                                             <property name="window_style"></property>
@@ -1678,6 +1727,10 @@
                                             <property name="size"></property>
                                             <property name="subclass"></property>
                                             <property name="tooltip"></property>
+                                            <property name="validator_data_type"></property>
+                                            <property name="validator_style">wxFILTER_NONE</property>
+                                            <property name="validator_type">wxDefaultValidator</property>
+                                            <property name="validator_variable"></property>
                                             <property name="window_extra_style"></property>
                                             <property name="window_name"></property>
                                             <property name="window_style"></property>
@@ -1729,6 +1782,10 @@
                                             <property name="style"></property>
                                             <property name="subclass"></property>
                                             <property name="tooltip"></property>
+                                            <property name="validator_data_type"></property>
+                                            <property name="validator_style">wxFILTER_NONE</property>
+                                            <property name="validator_type">wxDefaultValidator</property>
+                                            <property name="validator_variable"></property>
                                             <property name="value"></property>
                                             <property name="window_extra_style"></property>
                                             <property name="window_name"></property>
@@ -1787,6 +1844,10 @@
                                     <property name="style"></property>
                                     <property name="subclass"></property>
                                     <property name="tooltip"></property>
+                                    <property name="validator_data_type"></property>
+                                    <property name="validator_style">wxFILTER_NONE</property>
+                                    <property name="validator_type">wxDefaultValidator</property>
+                                    <property name="validator_variable"></property>
                                     <property name="window_extra_style"></property>
                                     <property name="window_name"></property>
                                     <property name="window_style"></property>
@@ -1847,6 +1908,10 @@
                                             <property name="style"></property>
                                             <property name="subclass"></property>
                                             <property name="tooltip"></property>
+                                            <property name="validator_data_type"></property>
+                                            <property name="validator_style">wxFILTER_NONE</property>
+                                            <property name="validator_type">wxDefaultValidator</property>
+                                            <property name="validator_variable"></property>
                                             <property name="window_extra_style"></property>
                                             <property name="window_name"></property>
                                             <property name="window_style"></property>
@@ -1899,6 +1964,10 @@
                                             <property name="style"></property>
                                             <property name="subclass"></property>
                                             <property name="tooltip"></property>
+                                            <property name="validator_data_type"></property>
+                                            <property name="validator_style">wxFILTER_NONE</property>
+                                            <property name="validator_type">wxDefaultValidator</property>
+                                            <property name="validator_variable"></property>
                                             <property name="window_extra_style"></property>
                                             <property name="window_name"></property>
                                             <property name="window_style"></property>
@@ -1990,6 +2059,10 @@
             <property name="subclass"></property>
             <property name="title"></property>
             <property name="tooltip"></property>
+            <property name="validator_data_type"></property>
+            <property name="validator_style">wxFILTER_NONE</property>
+            <property name="validator_type">wxDefaultValidator</property>
+            <property name="validator_variable"></property>
             <property name="window_extra_style"></property>
             <property name="window_name"></property>
             <property name="window_style"></property>
@@ -2048,6 +2121,10 @@
                         <property name="size"></property>
                         <property name="subclass"></property>
                         <property name="tooltip"></property>
+                        <property name="validator_data_type"></property>
+                        <property name="validator_style">wxFILTER_NONE</property>
+                        <property name="validator_type">wxDefaultValidator</property>
+                        <property name="validator_variable"></property>
                         <property name="window_extra_style"></property>
                         <property name="window_name"></property>
                         <property name="window_style">wxTAB_TRAVERSAL</property>
@@ -2101,6 +2178,10 @@
                                     <property name="style"></property>
                                     <property name="subclass"></property>
                                     <property name="tooltip"></property>
+                                    <property name="validator_data_type"></property>
+                                    <property name="validator_style">wxFILTER_NONE</property>
+                                    <property name="validator_type">wxDefaultValidator</property>
+                                    <property name="validator_variable"></property>
                                     <property name="window_extra_style"></property>
                                     <property name="window_name"></property>
                                     <property name="window_style"></property>
@@ -2152,6 +2233,10 @@
                                     <property name="style">wxGA_HORIZONTAL</property>
                                     <property name="subclass"></property>
                                     <property name="tooltip"></property>
+                                    <property name="validator_data_type"></property>
+                                    <property name="validator_style">wxFILTER_NONE</property>
+                                    <property name="validator_type">wxDefaultValidator</property>
+                                    <property name="validator_variable"></property>
                                     <property name="value"></property>
                                     <property name="window_extra_style"></property>
                                     <property name="window_name"></property>
@@ -2204,6 +2289,10 @@
                                     <property name="style"></property>
                                     <property name="subclass"></property>
                                     <property name="tooltip"></property>
+                                    <property name="validator_data_type"></property>
+                                    <property name="validator_style">wxFILTER_NONE</property>
+                                    <property name="validator_type">wxDefaultValidator</property>
+                                    <property name="validator_variable"></property>
                                     <property name="window_extra_style"></property>
                                     <property name="window_name"></property>
                                     <property name="window_style"></property>

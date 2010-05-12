@@ -57,6 +57,13 @@ class MainWindow(object):
         height = self.config.ReadInt('MainWindowHeight', 650)
         self.frame.SetSize((width, height))
         
+        # Create module choice
+        toolbar = self.frame.GetToolBar()
+        self.moduleChoice = wx.Choice(toolbar, -1)
+        self.moduleChoice.SetSize((200,-1))
+        self.moduleChoice.Bind(wx.EVT_CHOICE, self.OnModuleChosen)
+        toolbar.InsertControl(0, self.moduleChoice)
+        
         # Setup events
         SetupEvents(self.frame, [
             (None, wx.EVT_CLOSE, self.OnWindowClosed),
@@ -71,7 +78,6 @@ class MainWindow(object):
             ('refreshMenuItem', wx.EVT_MENU, self.OnRefresh),
 
             ('refreshTool', wx.EVT_TOOL, self.OnRefresh),
-            ('moduleChoice', wx.EVT_CHOICE, self.OnModuleChosen),
             ('refreshButton', wx.EVT_BUTTON, self.OnRefresh),
         ])
         
@@ -144,11 +150,10 @@ class MainWindow(object):
         if repo:
             title = "stupidgit - %s" % os.path.basename(repo.dir)
 
-            moduleChoice = GetWidget(self.frame, 'moduleChoice')
             for module in self.mainRepo.all_modules:
-                moduleChoice.Append(module.name)
+                self.moduleChoice.Append(module.name)
             
-            moduleChoice.Select(0)
+            self.moduleChoice.Select(0)
             self.SetRepo(repo)
 
         else:
