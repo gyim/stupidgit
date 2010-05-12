@@ -10,6 +10,24 @@ from git import Repository
 from MainWindow import *
 from PasswordDialog import *
 
+class StupidGitApp(wx.App):
+    def InitApp(self):
+        self.SetAppName('StupidGit')
+        wx.TheApp = self
+        if sys.platform == 'darwin':
+            self.SetExitOnFrameDelete(False)
+        
+    def OpenRepo(self, repo=None):
+        win = MainWindow(repo)
+        win.Show(True)
+    
+    def MacOpenFile(self, filename):
+        try:
+            repo = Repository(filename)
+            self.OpenRepo(repo)
+        except GitError:
+            pass
+
 def main_normal():
     # Parse arguments
     repodir = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
@@ -19,9 +37,10 @@ def main_normal():
         repo = Repository(repodir)
     except GitError:
         repo = None
-    app = wx.PySimpleApp()
-    win = MainWindow(repo)
-    win.Show(True)
+    
+    app = StupidGitApp()
+    app.InitApp()
+    app.OpenRepo(repo)
     app.MainLoop()
 
 def main_askpass():

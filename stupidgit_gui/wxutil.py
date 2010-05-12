@@ -17,7 +17,6 @@ _xrc_resource = None
 def _xrc():
     global _xrc_resource
     if not _xrc_resource:
-        print os.path.join(resource_dir(), 'stupidgit.xrc')
         _xrc_resource = xrc.XmlResource(os.path.join(resource_dir(), 'stupidgit.xrc'))
 
     return _xrc_resource

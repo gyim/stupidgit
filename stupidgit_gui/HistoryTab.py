@@ -298,7 +298,7 @@ class HistoryTab(object):
                 self.mainController.ReloadRepo()
 
     def OnFetchProgress(self, eventType, eventParam):
-        print 'FETCH CALLBACK:', eventType, eventParam
+        pass
 
     def OnPushCommit(self, e):
         # Require context commit

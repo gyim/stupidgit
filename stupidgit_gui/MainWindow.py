@@ -136,6 +136,7 @@ class MainWindow(object):
     def OnExit(self, e):
         while app_windows:
             app_windows[0].Close(True)
+        wx.TheApp.ExitMainLoop()
 
     def SetMainRepo(self, repo):
         self.mainRepo = repo
