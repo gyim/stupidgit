@@ -14,7 +14,6 @@ ID_CLOSEWINDOW  = 102
 TAB_HISTORY     = 0
 TAB_INDEX       = 1
 
-app_windows = []
 license_text = u'''
 Copyright (c) 2009 Ákos Gyimesi
 
@@ -49,7 +48,7 @@ class MainWindow(object):
     def __init__(self, repo):
         # Load frame from XRC
         self.frame = LoadFrame(None, 'MainWindow')
-        app_windows.append(self.frame)
+        wx.TheApp.app_windows.append(self)
         
         # Read default window size
         self.config = wx.Config('stupidgit')
@@ -114,7 +113,7 @@ class MainWindow(object):
         self.indexTab.SaveState()
 
         # Close window
-        app_windows.remove(self.frame)
+        wx.TheApp.app_windows.remove(self)
         self.frame.Destroy()
 
     def OnOpenRepository(self, e):
@@ -146,8 +145,8 @@ class MainWindow(object):
         wx.AboutBox(info)
 
     def OnExit(self, e):
-        while app_windows:
-            app_windows[0].Close(True)
+        while wx.TheApp.app_windows:
+            wx.TheApp.app_windows[0].frame.Close(True)
         wx.TheApp.ExitMainLoop()
 
     def SetMainRepo(self, repo):

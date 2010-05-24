@@ -14,12 +14,25 @@ class StupidGitApp(wx.PySimpleApp):
     def InitApp(self):
         self.SetAppName('StupidGit')
         wx.TheApp = self
+        self.app_windows = []
         if sys.platform == 'darwin':
             self.SetExitOnFrameDelete(False)
         
     def OpenRepo(self, repo=None):
-        win = MainWindow(repo)
-        win.Show(True)
+        # Find the first empty window (if exists)
+        win = None
+        for app_window in self.app_windows:
+            if not app_window.mainRepo:
+                win = app_window
+                break
+        
+        if win:
+            # Open repository in existing empty window
+            win.SetMainRepo(repo)
+        else:
+            # Create a new window
+            win = MainWindow(repo)
+            win.Show(True)
     
     def MacOpenFile(self, filename):
         try:
