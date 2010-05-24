@@ -35,6 +35,7 @@ class CommitList(wx.ScrolledWindow):
         self.Bind(wx.EVT_MOTION, self.OnMouseMove)
         self.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseLeave)
         self.repo = None
+        self.rows = []
         self.selection = []
         self.mainRepo = None
         self.mainRepoSelection = []
