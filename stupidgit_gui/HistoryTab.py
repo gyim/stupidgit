@@ -50,7 +50,6 @@ class HistoryTab(object):
         
         # Splitter
         self.splitter = GetWidget(self.mainWindow, "historySplitter")
-        self.splitter.SetSashPosition(self.mainController.config.ReadInt('HistorySplitterPosition', 200))
 
         # Context menu
         self.contextCommit = None
@@ -73,6 +72,9 @@ class HistoryTab(object):
             ('revertMenuItem', wx.EVT_MENU, self.OnRevert),
             ('gotoCommitMenuItem', wx.EVT_MENU, self.OnGotoCommit),
         ])
+
+    def OnCreated(self):
+        self.splitter.SetSashPosition(self.mainController.config.ReadInt('HistorySplitterPosition', 200))
 
     def SetRepo(self, repo):
         # Branch indexes

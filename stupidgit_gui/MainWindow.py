@@ -71,6 +71,7 @@ class MainWindow(object):
         
         # Setup events
         SetupEvents(self.frame, [
+            (None, wx.EVT_WINDOW_CREATE, self.OnWindowCreated),
             (None, wx.EVT_CLOSE, self.OnWindowClosed),
             
             ('tabs', wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnTabChanged),
@@ -100,6 +101,10 @@ class MainWindow(object):
     def OnNewWindow(self, e):
         win = MainWindow(None)
         win.Show(True)
+
+    def OnWindowCreated(self, e):
+        self.indexTab.OnCreated()
+        self.historyTab.OnCreated()
 
     def OnCloseWindow(self, e):
         self.frame.Close()

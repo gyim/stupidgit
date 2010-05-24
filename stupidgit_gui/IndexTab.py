@@ -59,8 +59,6 @@ class IndexTab(object):
         
         # Splitter
         self.splitter = GetWidget(self.mainWindow, 'indexSplitter')
-        self.splitter.SetSashPosition(self.mainController.config.ReadInt('IndexSplitterPosition', 200))
-        self.splitter.SetMinimumPaneSize(120)
         
         # Unstaged list
         self.unstagedList = FileList(self.listPanel, -1)
@@ -107,6 +105,10 @@ class IndexTab(object):
             ('commitMenuItem', wx.EVT_MENU, self.OnCommit),
             ('resetMenuItem', wx.EVT_MENU, self.OnReset),
         ])
+
+    def OnCreated(self):
+        self.splitter.SetSashPosition(self.mainController.config.ReadInt('IndexSplitterPosition', 200))
+        self.splitter.SetMinimumPaneSize(120)
 
     def OnStage(self, e):
         if self.mainController.selectedTab != MainWindow.TAB_INDEX:
