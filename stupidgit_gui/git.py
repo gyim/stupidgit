@@ -166,12 +166,16 @@ class Repository(object):
         # Search for .git directory in repodir ancestors
         repodir = os.path.abspath(repodir)
         try:
-            while not os.path.isdir(os.path.join(repodir, '.git')):
-                new_repodir = os.path.abspath(os.path.join(repodir, '..'))
-                if new_repodir == repodir or (parent and new_repodir == parent.dir):
-                    raise GitError, "Directory is not a git repository"
-                else:
-                    repodir = new_repodir
+            if parent:
+                if not os.path.isdir(os.path.join(repodir, '.git')):
+                    raise GitError, "Not a git repository: %s" % repodir
+            else:
+                while not os.path.isdir(os.path.join(repodir, '.git')):
+                    new_repodir = os.path.abspath(os.path.join(repodir, '..'))
+                    if new_repodir == repodir or (parent and new_repodir == parent.dir):
+                        raise GitError, "Directory is not a git repository"
+                    else:
+                        repodir = new_repodir
         except OSError:
             raise GitError, "Directory is not a git repository or it is not readable"
             
