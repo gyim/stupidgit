@@ -136,7 +136,10 @@ class IndexTab(object):
 
         for row in self.stagedList.GetSelections():
             filename = self.stagedChanges[row][0]
-            self.repo.run_cmd(['reset', 'HEAD', filename])
+            if self.repo.head == 'HEAD':
+                self.repo.run_cmd(['rm', '--cached', filename])
+            else:
+                self.repo.run_cmd(['reset', 'HEAD', filename])
 
         self.Refresh()
 

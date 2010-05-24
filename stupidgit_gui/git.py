@@ -293,6 +293,9 @@ class Repository(object):
 
     def get_log(self, args=[]):
         log = self.run_cmd(['log', '-z', '--date=relative', '--pretty=format:%H%n%h%n%P%n%T%n%an%n%ae%n%ad%n%s%n%b']+args)
+        
+        if len(log) == 0:
+            return []
 
         commit_texts = log.split('\x00')
         commit_texts.reverse()
@@ -322,8 +325,11 @@ class Repository(object):
             author_date = None # Use current date
 
             # Get HEAD sha1 id
-            head = self.run_cmd(['rev-parse', 'HEAD']).strip()
-            parents = [head]
+            if self.head == 'HEAD':
+                parents = []
+            else:
+                head = self.run_cmd(['rev-parse', 'HEAD']).strip()
+                parents = [head]
 
             # Get merge head if exists
             is_merge_resolve = False
@@ -388,11 +394,17 @@ class Repository(object):
                 unstaged_changes[filename] = FILE_UNTRACKED
 
         # Staged changes
-        changes = self.run_cmd(['diff', '--cached', '--name-status', '-z']).split('\x00')
-        for i in xrange(len(changes)/2):
-            status, filename = changes[2*i], changes[2*i+1]
-            if status != FILE_UNMERGED or filename not in unstaged_changes:
-                staged_changes[filename] = status
+        if self.head == 'HEAD':
+            # Initial commit
+            for filename in self.run_cmd(['ls-files', '--cached', '-z']).split('\x00'):
+                if filename:
+                    staged_changes[filename] = FILE_ADDED
+        else:
+            changes = self.run_cmd(['diff', '--cached', '--name-status', '-z']).split('\x00')
+            for i in xrange(len(changes)/2):
+                status, filename = changes[2*i], changes[2*i+1]
+                if status != FILE_UNMERGED or filename not in unstaged_changes:
+                    staged_changes[filename] = status
 
         return unstaged_changes, staged_changes
 
