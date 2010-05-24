@@ -393,7 +393,7 @@ class SwitchWizard(wx.Dialog):
             elif self.uncommittedMode == UNCOMMITTED_MERGE:
                 self.repo.run_cmd(['checkout', '-m', self.targetCommit.sha1], raise_error=True)
             elif self.uncommittedMode == UNCOMMITTED_DISCARD:
-                self.repo.run_cmd(['reset', '--hard', self.targetCommit.sha1], raise_error=True)
+                self.repo.run_cmd(['reset', '--hard'], raise_error=True)
                 self.repo.run_cmd(['clean', '-f'], raise_error=True)
 
             # Checkout branch
