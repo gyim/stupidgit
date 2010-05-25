@@ -31,6 +31,10 @@ MERGE_TOOLS = {
         ['{PATH}/meld'],
         ['{LOCAL}', '{MERGED}', '{REMOTE}']
     ),
+    'kdiff3': (
+        ['{PATH}/kdiff3'],
+        ['{LOCAL}', '{MERGED}', '{REMOTE}', '-o', '{MERGED}', '--L1', '{FILENAME}.LOCAL', '--L2', '{FILENAME}.MERGED', '--L3', '{FILENAME}.REMOTE']
+    ),
     'winmerge.win32': (
         [r'C:\Program Files\WinMerge\WinMergeU.exe'],
         ['{MERGED}'] # It does not support 3-way merge yet...
@@ -81,7 +85,7 @@ def detect_mergetool():
         tools = ['diffmerge.app', 'diffmerge.cmdline', 'meld']
     elif os.name == 'posix':
         # Other Unix
-        tools = ['diffmerge.cmdline', 'meld']
+        tools = ['diffmerge.cmdline', 'meld', 'kdiff3']
     elif sys.platform == 'win32':
         # Windows
         tools = ['winmerge.win32']
