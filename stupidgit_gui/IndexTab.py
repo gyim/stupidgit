@@ -72,9 +72,9 @@ class IndexTab(object):
         self.unstagedMenu.Append(MENU_MERGE_FILE, "Merge file")
         self.unstagedMenu.Append(MENU_TAKE_LOCAL, "Take local version")
         self.unstagedMenu.Append(MENU_TAKE_REMOTE, "Take remote version")
-        wx.EVT_MENU(self.unstagedList, MENU_MERGE_FILE, self.OnMergeFile)
-        wx.EVT_MENU(self.unstagedList, MENU_TAKE_LOCAL, self.OnTakeLocal)
-        wx.EVT_MENU(self.unstagedList, MENU_TAKE_REMOTE, self.OnTakeRemote)
+        wx.EVT_MENU(self.mainWindow, MENU_MERGE_FILE, self.OnMergeFile)
+        wx.EVT_MENU(self.mainWindow, MENU_TAKE_LOCAL, self.OnTakeLocal)
+        wx.EVT_MENU(self.mainWindow, MENU_TAKE_REMOTE, self.OnTakeRemote)
 
         # Staged changes
         self.stagedList = FileList(self.listPanel, -1)
