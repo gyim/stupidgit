@@ -35,14 +35,14 @@ MERGE_TOOLS = {
         ['{PATH}/kdiff3'],
         ['{LOCAL}', '{MERGED}', '{REMOTE}', '-o', '{MERGED}', '--L1', '{FILENAME}.LOCAL', '--L2', '{FILENAME}.MERGED', '--L3', '{FILENAME}.REMOTE']
     ),
-    'winmerge.win32': (
+    'winmerge': (
         [r'C:\Program Files\WinMerge\WinMergeU.exe'],
         ['{MERGED}'] # It does not support 3-way merge yet...
     ),
-    'winmerge.cygwin': (
-        ['/c/Program Files/WinMerge/WinMergeU.exe'],
-        ['{MERGED}'] # It does not support 3-way merge yet...
-    )
+    'tortoisemerge': (
+        [r'C:\Program Files\TortoiseGit\bin\TortoiseMerge.exe'],
+        ['{MERGED}', '{LOCAL}', '{REMOTE}']
+    ),
 }
 
 _git = None
@@ -61,8 +61,6 @@ def git_binary():
         locations = ['{PATH}/git', '/opt/local/bin/git', '/usr/local/git/bin']
     elif sys.platform == 'win32':
         locations = (r'{PATH}\git.exe', r'C:\Program Files\Git\bin\git.exe')
-    elif sys.platform == 'cygwin':
-        locations = (r'{PATH}/git.exe', r'/c/Program Files/Git/bin/git.exe')
     else:
         locations = []
 
@@ -88,10 +86,7 @@ def detect_mergetool():
         tools = ['diffmerge.cmdline', 'meld', 'kdiff3']
     elif sys.platform == 'win32':
         # Windows
-        tools = ['winmerge.win32']
-    elif sys.platform == 'cygwin':
-        # Cygwin
-        tools = ['winmerge.cygwin']
+        tools = ['tortoisemerge', 'winmerge']
     else:
         raise GitError, "Cannot detect any merge tool"
 
