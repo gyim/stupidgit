@@ -19,6 +19,10 @@ FILE_BROKEN      = 'B'
 FILE_UNKNOWN     = 'X'
 
 MERGE_TOOLS = {
+    'opendiff': (
+        ['/usr/bin/opendiff'],
+        ['{LOCAL}', '{REMOTE}', '-merge', '{MERGED}']
+    ),
     'diffmerge.app': (
         ['/Applications/DiffMerge.app/Contents/MacOS/DiffMerge'],
         ['--nosplash', '-t1={FILENAME}.LOCAL', '-t2={FILENAME}.MERGED', '-t3={FILENAME}.REMOTE', '{LOCAL}', '{MERGED}', '{REMOTE}']
@@ -80,7 +84,7 @@ def detect_mergetool():
     # Select tools
     if sys.platform == 'darwin':
         # Mac OS X
-        tools = ['diffmerge.app', 'diffmerge.cmdline', 'meld']
+        tools = ['diffmerge.app', 'diffmerge.cmdline', 'opendiff', 'meld']
     elif os.name == 'posix':
         # Other Unix
         tools = ['diffmerge.cmdline', 'meld', 'kdiff3']
