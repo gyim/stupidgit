@@ -432,16 +432,14 @@ class Repository(object):
 
     def merge_file(self, filename):
         # Store file versions in temporary files
-        _, local_file = tempfile.mkstemp(os.path.basename(filename) + '.LOCAL')
-        f = open(local_file, 'w')
-        f.write(self.run_cmd(['show', ':2:%s' % filename], raise_error=True))
-        f.close()
+        fd, local_file = tempfile.mkstemp(prefix=os.path.basename(filename) + '.LOCAL.')
+        os.write(fd, self.run_cmd(['show', ':2:%s' % filename], raise_error=True))
+        os.close(fd)
 
-        _, remote_file = tempfile.mkstemp(os.path.basename(filename) + '.REMOTE')
-        f = open(remote_file, 'w')
-        f.write(self.run_cmd(['show', ':3:%s' % filename], raise_error=True))
-        f.close()
-
+        fd, remote_file = tempfile.mkstemp(prefix=os.path.basename(filename) + '.REMOTE.')
+        os.write(fd, self.run_cmd(['show', ':3:%s' % filename], raise_error=True))
+        os.close(fd)
+        
         # Run mergetool
         mergetool, args = detect_mergetool()
         args = list(args)
