@@ -109,6 +109,7 @@ def run_cmd(dir, args, with_retcode=False, with_stderr=False, raise_error=False,
     # Check args
     if type(args) in [str, unicode]:
         args = [args]
+    args = [str(a) for a in args]
 
     # Check directory
     if not os.path.isdir(dir):
