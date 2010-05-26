@@ -71,7 +71,6 @@ class MainWindow(object):
         
         # Setup events
         SetupEvents(self.frame, [
-            (None, wx.EVT_WINDOW_CREATE, self.OnWindowCreated),
             (None, wx.EVT_CLOSE, self.OnWindowClosed),
             
             ('tabs', wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnTabChanged),
@@ -97,6 +96,11 @@ class MainWindow(object):
 
     def Show(self, doShow=True):
         self.frame.Show(doShow)
+        
+        # Sash positions must be set after the window is really shown.
+        # Otherwise the sash position settings will be silently ignored :-/
+        if doShow:
+            self.OnWindowCreated(None)
 
     def OnNewWindow(self, e):
         win = MainWindow(None)
