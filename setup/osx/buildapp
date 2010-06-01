@@ -24,7 +24,8 @@ mkdir -p $resource_dir/lib
 # Copy core files
 cp setup/osx/Info.plist setup/osx/PkgInfo $appdir/
 cp setup/osx/StupidGit $bindir/
-cp setup/osx/StupidGit $bindir/StupidGit-askpass
+cp setup/osx/StupidGit-askpass $bindir/StupidGit-askpass
+ln -s /System/Library/Frameworks/Python.framework/Versions/2.5/Resources/Python.app/Contents/MacOS/Python $bindir/
 cp -r stupidgit_gui $resource_dir/lib/stupidgit_gui
 rm -f $resource_dir/lib/stupidgit_gui/*.pyc
 

@@ -1,0 +1,16 @@
+#!/usr/bin/env python2.5
+
+import os
+import os.path
+import sys
+
+# Setup directories
+resource_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Resources'))
+os.environ['STUPIDGIT_RESOURCES'] = resource_dir
+
+module_dir = os.path.join(resource_dir, 'lib')
+sys.path.append(module_dir)
+
+# Run StupidGit
+from stupidgit_gui.run import main
+main()
