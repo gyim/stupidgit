@@ -19,6 +19,8 @@ class StupidGitApp(wx.PySimpleApp):
         if sys.platform == 'darwin':
             self.hiddenWindow = HiddenWindow()
             self.SetExitOnFrameDelete(False)
+            wx.App_SetMacAboutMenuItemId(xrc.XRCID('aboutMenuItem'))
+            wx.App_SetMacExitMenuItemId(xrc.XRCID('quitMenuItem'))
         
     def OpenRepo(self, repo=None):
         # Find the first empty window (if exists)

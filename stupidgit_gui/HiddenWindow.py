@@ -1,6 +1,7 @@
 import wx
 from MainWindow import *
 from wxutil import *
+from AboutDialog import ShowAboutDialog
 
 class HiddenWindow(object):
     def __init__(self):
@@ -12,6 +13,7 @@ class HiddenWindow(object):
             ('quitMenuItem', wx.EVT_MENU, self.OnExit),
             ('openMenuItem', wx.EVT_MENU, self.OnOpenRepository),
             ('newWindowMenuItem', wx.EVT_MENU, self.OnNewWindow),
+            ('aboutMenuItem', wx.EVT_MENU, self.OnAbout),
         ])
     
     def ShowMenu(self):
@@ -41,3 +43,5 @@ class HiddenWindow(object):
     def OnExit(self, e):
         wx.TheApp.ExitApp()
 
+    def OnAbout(self, e):
+        ShowAboutDialog()
