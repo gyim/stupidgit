@@ -468,4 +468,35 @@
 			</object>
 		</object>
 	</object>
+	<object class="wxFrame" name="HiddenWindow">
+		<style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>
+		<size>500,300</size>
+		<title></title>
+		<object class="wxMenuBar" name="menuBar">
+			<label>MyMenuBar</label>
+			<object class="wxMenu" name="repositoryMenu">
+				<label>Repository</label>
+				<object class="wxMenuItem" name="newWindowMenuItem">
+					<label>&amp;New Window\tCtrl-N</label>
+					<help></help>
+				</object>
+				<object class="wxMenuItem" name="openMenuItem">
+					<label>&amp;Open Repository\tCTRL-O</label>
+					<help></help>
+				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="quitMenuItem">
+					<label>&amp;Quit\tCTRL-Q</label>
+					<help></help>
+				</object>
+			</object>
+			<object class="wxMenu" name="helpMenu">
+				<label>_Help</label>
+				<object class="wxMenuItem" name="aboutMenuItem">
+					<label>&amp;About</label>
+					<help></help>
+				</object>
+			</object>
+		</object>
+	</object>
 </resource>

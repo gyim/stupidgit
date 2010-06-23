@@ -9,6 +9,7 @@ import wx
 from git import Repository
 from MainWindow import *
 from PasswordDialog import *
+from HiddenWindow import *
 
 class StupidGitApp(wx.PySimpleApp):
     def InitApp(self):
@@ -16,6 +17,7 @@ class StupidGitApp(wx.PySimpleApp):
         wx.TheApp = self
         self.app_windows = []
         if sys.platform == 'darwin':
+            self.hiddenWindow = HiddenWindow()
             self.SetExitOnFrameDelete(False)
         
     def OpenRepo(self, repo=None):
@@ -33,6 +35,19 @@ class StupidGitApp(wx.PySimpleApp):
             # Create a new window
             win = MainWindow(repo)
             win.Show(True)
+    
+    def OnWindowCreated(self, win):
+        self.app_windows.append(win)
+    
+    def OnWindowClosed(self, win):
+        self.app_windows.remove(win)
+        if len(self.app_windows) == 0:
+            self.hiddenWindow.ShowMenu()
+    
+    def ExitApp(self):
+        while self.app_windows:
+            self.app_windows[0].frame.Close(True)
+        self.ExitMainLoop()
     
     def MacOpenFile(self, filename):
         try:

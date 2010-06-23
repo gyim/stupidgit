@@ -48,7 +48,6 @@ class MainWindow(object):
     def __init__(self, repo):
         # Load frame from XRC
         self.frame = LoadFrame(None, 'MainWindow')
-        wx.TheApp.app_windows.append(self)
         
         # Read default window size
         self.config = wx.Config('stupidgit')
@@ -107,6 +106,7 @@ class MainWindow(object):
         win.Show(True)
 
     def OnWindowCreated(self, e):
+        wx.TheApp.OnWindowCreated(self)
         self.indexTab.OnCreated()
         self.historyTab.OnCreated()
 
@@ -122,8 +122,8 @@ class MainWindow(object):
         self.indexTab.SaveState()
 
         # Close window
-        wx.TheApp.app_windows.remove(self)
         self.frame.Destroy()
+        wx.TheApp.OnWindowClosed(self)
 
     def OnOpenRepository(self, e):
         repodir = wx.DirSelector("Open repository")
@@ -154,9 +154,7 @@ class MainWindow(object):
         wx.AboutBox(info)
 
     def OnExit(self, e):
-        while wx.TheApp.app_windows:
-            wx.TheApp.app_windows[0].frame.Close(True)
-        wx.TheApp.ExitMainLoop()
+        wx.TheApp.ExitApp()
 
     def SetMainRepo(self, repo):
         self.mainRepo = repo
