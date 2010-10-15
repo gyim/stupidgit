@@ -43,7 +43,7 @@ class StupidGitApp(wx.PySimpleApp):
     
     def OnWindowClosed(self, win):
         self.app_windows.remove(win)
-        if len(self.app_windows) == 0:
+        if len(self.app_windows) == 0 and sys.platform == 'darwin':
             self.hiddenWindow.ShowMenu()
     
     def ExitApp(self):
