@@ -7,3 +7,10 @@ StupidGit.egg-info
 MANIFEST
 *.swp
 *.pyc
+debian/python-module-stampdir/
+debian/stupidgit.debhelper.log
+debian/stupidgit.postinst.debhelper
+debian/stupidgit.prerm.debhelper
+debian/stupidgit.substvars
+debian/stupidgit/
+debian/files

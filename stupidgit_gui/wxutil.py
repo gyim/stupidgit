@@ -9,7 +9,10 @@ def resource_dir():
     if 'STUPIDGIT_RESOURCES' in os.environ:
         _resource_dir = os.environ['STUPIDGIT_RESOURCES']
     elif not _resource_dir:
-        _resource_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'resources'))
+        if os.path.commonprefix([__file__, '/usr/lib/pymodules']) == '/usr/lib/pymodules':
+            _resource_dir = '/usr/share/stupidgit'
+        else:
+            _resource_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'resources'))
 
     return _resource_dir
 
